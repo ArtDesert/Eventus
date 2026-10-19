@@ -5,7 +5,7 @@ namespace Eventus.WebApi.Data.Requests.Events;
 public class EventBaseRequest : IValidatableObject
 {
     [Required(ErrorMessage = "Title is required")]
-    public string Title { get; init; }
+    public required string Title { get; init; }
     
     public string? Description { get; init; }
     
