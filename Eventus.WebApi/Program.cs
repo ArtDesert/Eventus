@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Eventus.AppServices.Extensions;
+using Eventus.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.MapControllers();
