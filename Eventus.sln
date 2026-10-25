@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventus.WebApi", "Eventus.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventus.AppServices", "Eventus.AppServices\Eventus.AppServices.csproj", "{E2A3EBA5-BEF5-49B9-8E9F-FF883755AC11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventus.Tests", "Eventus.Tests\Eventus.Tests.csproj", "{883AB8A0-D7BB-4701-8A17-BEA29F7C9EA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventus.Api.Contracts", "Eventus.Api.Contracts\Eventus.Api.Contracts.csproj", "{0E754B8B-52E2-48CA-A50F-31F33C1DADE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{E2A3EBA5-BEF5-49B9-8E9F-FF883755AC11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2A3EBA5-BEF5-49B9-8E9F-FF883755AC11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2A3EBA5-BEF5-49B9-8E9F-FF883755AC11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{883AB8A0-D7BB-4701-8A17-BEA29F7C9EA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{883AB8A0-D7BB-4701-8A17-BEA29F7C9EA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{883AB8A0-D7BB-4701-8A17-BEA29F7C9EA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{883AB8A0-D7BB-4701-8A17-BEA29F7C9EA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E754B8B-52E2-48CA-A50F-31F33C1DADE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E754B8B-52E2-48CA-A50F-31F33C1DADE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E754B8B-52E2-48CA-A50F-31F33C1DADE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E754B8B-52E2-48CA-A50F-31F33C1DADE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

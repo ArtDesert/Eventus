@@ -8,11 +8,12 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Eventus.AppServices\Eventus.AppServices.csproj" />
+        <ProjectReference Include="..\Eventus.Api.Contracts\Eventus.Api.Contracts.csproj"/>
+        <ProjectReference Include="..\Eventus.AppServices\Eventus.AppServices.csproj"/>
     </ItemGroup>
 
 </Project>

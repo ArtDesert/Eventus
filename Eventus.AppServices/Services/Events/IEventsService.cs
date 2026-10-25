@@ -1,17 +1,17 @@
-﻿using Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.Api.Contracts.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
 
 namespace Eventus.AppServices.Services.Events;
 
 public interface IEventsService
 {
-    List<Event> GetAll();
+    PaginatedEventsResultDto GetEventsByFilter(GetEventsByFilterRequest request);
 
-    Event? GetEventById(Guid id);
+    EventDto? GetEventById(Guid id);
 
     Guid CreateEvent(CreateEventRequest request);
 
-    bool UpdateEvent(UpdateEventRequest request);
+    void UpdateEvent(UpdateEventRequest request);
 
-    bool DeleteEvent(Guid id);
+    void DeleteEvent(Guid id);
 }

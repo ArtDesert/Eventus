@@ -1,51 +1,73 @@
-﻿using Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.Api.Contracts.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
+using Eventus.AppServices.Exceptions;
+using Eventus.AppServices.Repositories.Events;
 
 namespace Eventus.AppServices.Services.Events;
 
-internal class EventsService : IEventsService
+internal class EventsService(IEventsRepository repository) : IEventsService
 {
-    private static readonly List<Event> Events =
-    [
-        new(
-            Guid.Parse("5eb5fa1b-79d5-42b7-a190-a6532b5e085a"),
-            "The International 2026",
-            null,
-            new DateTime(2026, 08, 13),
-            new DateTime(2026, 08, 23))
-    ];
+    public PaginatedEventsResultDto GetEventsByFilter(GetEventsByFilterRequest request)
+    {
+        var result = repository.GetEventsByFilter(request);
 
-    public List<Event> GetAll() => Events;
+        return new PaginatedEventsResultDto
+        {
+            TotalCount = result.TotalCount,
+            Items = result.Items
+                .Select(e => new EventDto
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    Description = e.Description,
+                    StartAt = e.StartAt,
+                    EndAt = e.EndAt,
+                })
+                .ToArray(),
+            Page = request.Page,
+            ItemsCount = result.Items.Length,
+        };
+    }
 
-    public Event? GetEventById(Guid id) =>
-        Events.Find(e => e.Id == id);
+    public EventDto? GetEventById(Guid id)
+    {
+        var result = repository.GetEventById(id);
+
+        if (result == null)
+        {
+            throw new NotFoundException($"Event with ID: {id} not found.");
+        }
+
+        return new EventDto
+        {
+            Id = result.Id,
+            Title = result.Title,
+            Description = result.Description,
+            StartAt = result.StartAt,
+            EndAt = result.EndAt,
+        };
+    }
 
     public Guid CreateEvent(CreateEventRequest request)
     {
-        var @event = new Event(Guid.NewGuid(), request.Title, request.Description, request.StartAt, request.EndAt);
-        Events.Add(@event);
-        return @event.Id;
+        return repository.CreateEvent(request);
     }
 
-    public bool UpdateEvent(UpdateEventRequest request)
+    public void UpdateEvent(UpdateEventRequest request)
     {
-        var @event = Events.Find(e => e.Id == request.Id);
-        if (@event == null)
+        var result = repository.UpdateEvent(request);
+        if (!result)
         {
-            return false;
+            throw new NotFoundException($"Event with ID: {request.Id} not found.");
         }
-
-        @event.Title = request.Title;
-        @event.Description = request.Description;
-        @event.StartAt = request.StartAt;
-        @event.EndAt = request.EndAt;
-
-        return true;
     }
 
-    public bool DeleteEvent(Guid id)
+    public void DeleteEvent(Guid id)
     {
-        var count = Events.RemoveAll(e => e.Id == id);
-        return count != 0;
+        var result = repository.DeleteEvent(id);
+        if (!result)
+        {
+            throw new NotFoundException($"Event with ID: {id} not found.");
+        }
     }
 }

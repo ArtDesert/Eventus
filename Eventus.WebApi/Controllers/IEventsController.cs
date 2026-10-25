@@ -1,12 +1,12 @@
-﻿using Eventus.WebApi.Data.Dto.Events;
-using Eventus.WebApi.Data.Requests.Events;
+﻿using Eventus.Api.Contracts.Dto.Events;
+using Eventus.Api.Contracts.Requests.Events;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eventus.WebApi.Controllers;
 
 public interface IEventsController
 {
-    ActionResult<List<EventDto>> GetAll();
+    ActionResult<PaginatedEventsResultDto> GetEventsByFilter(GetEventsByFilterRequest request);
 
     ActionResult<EventDto> GetEventById(Guid id);
 
