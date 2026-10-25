@@ -1,6 +1,6 @@
 ﻿namespace Eventus.Api.Contracts.Dto.Events;
 
-public class PaginatedEventsResultDto()
+public class PaginatedEventsResultDto
 {
     public required int TotalCount { get; init; }
 

@@ -14,7 +14,6 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -27,6 +26,6 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.MapControllers();
 app.UseSwagger();
-app.UseSwaggerUI(); 
+app.UseSwaggerUI();
 
 app.Run();

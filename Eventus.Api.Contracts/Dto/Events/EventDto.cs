@@ -1,6 +1,6 @@
 ﻿namespace Eventus.Api.Contracts.Dto.Events;
 
-public class EventDto()
+public class EventDto
 {
     public required Guid Id { get; init; }
 

@@ -16,7 +16,6 @@ public static class ServiceCollectionExtensions
 
         public IServiceCollection AddRepositories()
         {
-            services.AddSingleton<IEventsRepository, EventsInMemoryRepository>();
             services.AddSingleton<IEventsRepository>(_ => new EventsInMemoryRepository([]));
             return services;
         }
