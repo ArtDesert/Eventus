@@ -12,7 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Eventus.AppServices\Eventus.AppServices.csproj" />
+        <ProjectReference Include="..\Eventus.Api.Contracts\Eventus.Api.Contracts.csproj"/>
+        <ProjectReference Include="..\Eventus.AppServices\Eventus.AppServices.csproj"/>
     </ItemGroup>
 
 </Project>
