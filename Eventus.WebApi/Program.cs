@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAppServices();
+builder.Services.AddRepositories();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
