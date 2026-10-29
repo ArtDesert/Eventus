@@ -19,12 +19,12 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
         string? description = null,
         DateTime? startAt = null,
         DateTime? endAt = null) => new()
-    {
-        Title = title,
-        Description = description,
-        StartAt = startAt ?? StartDate,
-        EndAt = endAt ?? StartDate.AddHours(5),
-    };
+        {
+            Title = title,
+            Description = description,
+            StartAt = startAt ?? StartDate,
+            EndAt = endAt ?? StartDate.AddHours(5),
+        };
 
     public static TheoryData<string, EventBaseRequest, string> IncorrectRequests => new()
     {

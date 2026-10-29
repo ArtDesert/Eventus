@@ -17,7 +17,7 @@ public class GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<Glo
             await HandleException(httpContext, ex);
         }
     }
-    
+
     private async Task HandleException(HttpContext httpContext, Exception ex)
     {
         logger.LogError(
@@ -25,14 +25,14 @@ public class GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<Glo
             "Unhandled exception. Method={Method}, Path={Path}",
             httpContext.Request.Method,
             httpContext.Request.Path);
-            
+
         if (httpContext.Response.HasStarted)
         {
             return;
         }
 
         var statusCode = MapStatusCode(ex);
-        
+
         httpContext.Response.StatusCode = statusCode;
         httpContext.Response.ContentType = "application/json";
 
@@ -44,7 +44,7 @@ public class GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<Glo
 
         await httpContext.Response.WriteAsJsonAsync(error);
     }
-    
+
     private static int MapStatusCode(Exception ex)
         => ex switch
         {

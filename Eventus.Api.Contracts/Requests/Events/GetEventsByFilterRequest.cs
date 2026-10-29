@@ -5,9 +5,9 @@ namespace Eventus.Api.Contracts.Requests.Events;
 public class GetEventsByFilterRequest : IValidatableObject
 {
     public string? Title { get; init; }
-    
+
     public DateTime? From { get; init; }
-    
+
     public DateTime? To { get; init; }
 
     [Range(1, 100)]

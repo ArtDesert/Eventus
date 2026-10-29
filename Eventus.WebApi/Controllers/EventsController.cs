@@ -19,14 +19,14 @@ public class EventsController(IEventsService eventsService)
             request.To,
             request.Page ?? 1,
             request.PageSize ?? 10);
-        
+
         return eventsService.GetEventsByFilter(appServicesRequest);
     }
-    
+
     [HttpGet("{id:guid}")]
     public ActionResult<EventDto> GetEventById([FromRoute] Guid id) =>
         eventsService.GetEventById(id);
-    
+
     [HttpPost]
     public IActionResult CreateEvent([FromBody] EventBaseRequest request)
     {
@@ -35,7 +35,7 @@ public class EventsController(IEventsService eventsService)
         var eventDto = eventsService.CreateEvent(appServicesRequest);
         return CreatedAtAction(nameof(GetEventById), new { eventDto.Id }, eventDto);
     }
-    
+
     [HttpPut("{id:guid}")]
     public IActionResult UpdateEvent([FromRoute] Guid id, [FromBody] EventBaseRequest request)
     {
@@ -45,7 +45,7 @@ public class EventsController(IEventsService eventsService)
 
         return NoContent();
     }
-    
+
     [HttpDelete("{id:guid}")]
     public IActionResult DeleteEvent([FromRoute] Guid id)
     {

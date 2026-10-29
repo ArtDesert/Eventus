@@ -46,7 +46,7 @@ public class EventsServiceTests
         // Assert
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void GetEventsByFilter_RepositoryReturnsEvents_MapsToPaginatedResultDto()
     {
@@ -185,7 +185,7 @@ public class EventsServiceTests
         _repositoryMock.Setup(mock => mock.DeleteEvent(id)).Returns(false);
 
         // Act & Assert
-        Assert.Throws<NotFoundException>(() =>_service.DeleteEvent(id));
+        Assert.Throws<NotFoundException>(() => _service.DeleteEvent(id));
         _repositoryMock.Verify(mock => mock.DeleteEvent(id), Times.Once);
     }
 

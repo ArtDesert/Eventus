@@ -100,7 +100,7 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
     [Theory]
     [MemberData(nameof(IncorrectQueries))]
     public async Task GetEventsByFilter_IncorrectQuery_Returns400WithProblemKey(
-        string _, string query,  string field)
+        string _, string query, string field)
     {
         // Arrange
         // Act
@@ -111,7 +111,7 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
         var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         Assert.Contains(field, problem!.Errors.Keys);
     }
-    
+
     [Theory]
     [MemberData(nameof(CorrectQueries))]
     public async Task GetEventsByFilter_ValidationPassed_Returns200(string _, string query)

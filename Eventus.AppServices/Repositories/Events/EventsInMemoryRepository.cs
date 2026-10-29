@@ -60,7 +60,7 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
             {
                 return false;
             }
-            
+
             _events[index] = new Event(
                 request.Id,
                 request.Title,
