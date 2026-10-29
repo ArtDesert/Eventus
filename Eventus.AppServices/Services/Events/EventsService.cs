@@ -30,7 +30,7 @@ internal class EventsService(IEventsRepository repository) : IEventsService
         };
     }
 
-    public EventDto? GetEventById(Guid id)
+    public EventDto GetEventById(Guid id)
     {
         var result = repository.GetEventById(id);
 

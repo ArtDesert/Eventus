@@ -7,7 +7,7 @@ public interface IEventsService
 {
     PaginatedEventsResultDto GetEventsByFilter(GetEventsByFilterRequest request);
 
-    EventDto? GetEventById(Guid id);
+    EventDto GetEventById(Guid id);
 
     EventDto CreateEvent(CreateEventRequest request);
 

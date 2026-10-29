@@ -25,7 +25,7 @@ public class EventsController(IEventsService eventsService)
     
     [HttpGet("{id:guid}")]
     public ActionResult<EventDto> GetEventById([FromRoute] Guid id) =>
-        eventsService.GetEventById(id)!;
+        eventsService.GetEventById(id);
     
     [HttpPost]
     public IActionResult CreateEvent([FromBody] EventBaseRequest request)
