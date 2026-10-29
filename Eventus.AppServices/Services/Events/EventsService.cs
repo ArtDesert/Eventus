@@ -1,4 +1,5 @@
 ﻿using Eventus.Api.Contracts.Dto.Events;
+using Eventus.AppServices.Data.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
 using Eventus.AppServices.Exceptions;
 using Eventus.AppServices.Repositories.Events;
@@ -38,19 +39,13 @@ internal class EventsService(IEventsRepository repository) : IEventsService
             throw new NotFoundException($"Event with ID: {id} not found.");
         }
 
-        return new EventDto
-        {
-            Id = result.Id,
-            Title = result.Title,
-            Description = result.Description,
-            StartAt = result.StartAt,
-            EndAt = result.EndAt,
-        };
+        return MapToEventDto(result);
     }
 
-    public Guid CreateEvent(CreateEventRequest request)
+    public EventDto CreateEvent(CreateEventRequest request)
     {
-        return repository.CreateEvent(request);
+        var result = repository.CreateEvent(request);
+        return MapToEventDto(result);
     }
 
     public void UpdateEvent(UpdateEventRequest request)
@@ -69,5 +64,17 @@ internal class EventsService(IEventsRepository repository) : IEventsService
         {
             throw new NotFoundException($"Event with ID: {id} not found.");
         }
+    }
+
+    private static EventDto MapToEventDto(Event @event)
+    {
+        return new EventDto
+        {
+            Id = @event.Id,
+            Title = @event.Title,
+            Description = @event.Description,
+            StartAt = @event.StartAt,
+            EndAt = @event.EndAt,
+        };
     }
 }

@@ -15,7 +15,8 @@ public class EventsRepositoryTests
             "Test description",
             new DateTime(2026, 1, 1),
             new DateTime(2026, 1, 18));
-        return _repository.CreateEvent(request);
+        var createdEvent = _repository.CreateEvent(request);
+        return createdEvent.Id;
     }
 
     [Fact]
@@ -29,12 +30,13 @@ public class EventsRepositoryTests
             new DateTime(2026, 1, 18));
 
         // Act
-        var id = _repository.CreateEvent(request);
-        var @event = _repository.GetEventById(id);
+        var createdEvent = _repository.CreateEvent(request);
+        var @event = _repository.GetEventById(createdEvent.Id);
 
         // Assert
+        Assert.NotNull(createdEvent);
+        createdEvent.Should().BeEquivalentTo(request);
         Assert.NotNull(@event);
-        Assert.Equal(id, @event.Id);
         @event.Should().BeEquivalentTo(request);
     }
 

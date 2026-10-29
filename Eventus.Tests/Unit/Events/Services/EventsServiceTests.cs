@@ -23,22 +23,28 @@ public class EventsServiceTests
     #region PositiveCases
 
     [Fact]
-    public void CreateEvent_CorrectRequest_ReturnsCreatedEventId()
+    public void CreateEvent_CorrectRequest_ReturnsCreatedEvent()
     {
         // Arrange
-        var expected = Guid.NewGuid();
+        var id = Guid.NewGuid();
         var request = new CreateEventRequest(
             "Test",
-            null,
+            "Description",
             new DateTime(2000, 1, 1),
             new DateTime(2005, 1, 1));
+        var expected = new Event(
+            id,
+            request.Title,
+            request.Description,
+            request.StartAt,
+            request.EndAt);
         _repositoryMock.Setup(mock => mock.CreateEvent(request)).Returns(expected);
 
         // Act
         var actual = _service.CreateEvent(request);
 
         // Assert
-        Assert.Equal(expected, actual);
+        actual.Should().BeEquivalentTo(expected);
     }
     
     [Fact]

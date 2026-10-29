@@ -9,7 +9,7 @@ public interface IEventsService
 
     EventDto? GetEventById(Guid id);
 
-    Guid CreateEvent(CreateEventRequest request);
+    EventDto CreateEvent(CreateEventRequest request);
 
     void UpdateEvent(UpdateEventRequest request);
 

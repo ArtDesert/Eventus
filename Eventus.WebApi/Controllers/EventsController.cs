@@ -32,8 +32,8 @@ public class EventsController(IEventsService eventsService)
     {
         var appServicesRequest = new AppServices.Data.Requests.Events.CreateEventRequest(
             request.Title, request.Description, request.StartAt, request.EndAt);
-        var id = eventsService.CreateEvent(appServicesRequest);
-        return CreatedAtAction(nameof(GetEventById), new { id }, id);
+        var eventDto = eventsService.CreateEvent(appServicesRequest);
+        return CreatedAtAction(nameof(GetEventById), new { eventDto.Id }, eventDto);
     }
     
     [HttpPut("{id:guid}")]

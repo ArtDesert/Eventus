@@ -9,7 +9,7 @@ public interface IEventsRepository
 
     Event? GetEventById(Guid id);
 
-    Guid CreateEvent(CreateEventRequest request);
+    Event CreateEvent(CreateEventRequest request);
 
     bool UpdateEvent(UpdateEventRequest request);
 

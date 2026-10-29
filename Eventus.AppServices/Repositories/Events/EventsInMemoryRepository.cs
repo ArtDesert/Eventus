@@ -41,13 +41,13 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
         }
     }
 
-    public Guid CreateEvent(CreateEventRequest request)
+    public Event CreateEvent(CreateEventRequest request)
     {
         lock (_lock)
         {
             var @event = new Event(Guid.NewGuid(), request.Title, request.Description, request.StartAt, request.EndAt);
             _events.Add(@event);
-            return @event.Id;
+            return @event;
         }
     }
 
