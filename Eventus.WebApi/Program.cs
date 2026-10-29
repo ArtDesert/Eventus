@@ -22,7 +22,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
 app.UseRouting();
 app.MapControllers();
 app.UseSwagger();
