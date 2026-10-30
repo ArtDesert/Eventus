@@ -1,4 +1,4 @@
-﻿using Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
 
 namespace Eventus.Tests.Unit.Events.Repositories.Data;
 

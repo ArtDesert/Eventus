@@ -1,4 +1,5 @@
 ﻿using Eventus.Api.Contracts.Dto.Events;
+using Eventus.AppServices.Data.Domain.Events;
 using Eventus.AppServices.Data.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
 using Eventus.AppServices.Exceptions;

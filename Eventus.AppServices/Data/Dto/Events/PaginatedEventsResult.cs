@@ -1,4 +1,6 @@
-﻿namespace Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
+
+namespace Eventus.AppServices.Data.Dto.Events;
 
 public class PaginatedEventsResult(int totalCount, Event[] items)
 {
