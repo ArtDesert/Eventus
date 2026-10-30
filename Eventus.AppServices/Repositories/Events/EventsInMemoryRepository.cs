@@ -10,6 +10,9 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
 
     public PaginatedEventsResult GetEventsByFilter(GetEventsByFilterRequest request)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(request.Page, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(request.PageSize, 1);
+        
         lock (_lock)
         {
             var filteredEvents = _events
