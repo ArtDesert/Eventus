@@ -1,4 +1,5 @@
-﻿using Eventus.AppServices.Data.Requests.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
+using Eventus.AppServices.Data.Requests.Events;
 using Eventus.AppServices.Repositories.Events;
 using FluentAssertions;
 
@@ -8,15 +9,14 @@ public class EventsRepositoryTests
 {
     private readonly IEventsRepository _repository = new EventsInMemoryRepository([]);
 
-    private Guid AddTestEvent()
+    private Event AddTestEvent()
     {
         var request = new CreateEventRequest(
             "Test event",
             "Test description",
             new DateTime(2026, 1, 1),
             new DateTime(2026, 1, 18));
-        var createdEvent = _repository.CreateEvent(request);
-        return createdEvent.Id;
+        return _repository.CreateEvent(request);
     }
 
     [Fact]
@@ -44,9 +44,9 @@ public class EventsRepositoryTests
     public void UpdateEvent_ExistingEvent_ReplacesAllProperties()
     {
         // Arrange
-        var id = AddTestEvent();
+        var testEvent = AddTestEvent();
         var updateRequest = new UpdateEventRequest(
-            id,
+            testEvent.Id,
             "New title",
             "New description",
             new DateTime(2026, 1, 1, 10, 0, 0),
@@ -54,7 +54,7 @@ public class EventsRepositoryTests
 
         // Act
         var isUpdated = _repository.UpdateEvent(updateRequest);
-        var updatedEvent = _repository.GetEventById(id);
+        var updatedEvent = _repository.GetEventById(testEvent.Id);
 
         // Assert
         Assert.True(isUpdated);
@@ -86,11 +86,11 @@ public class EventsRepositoryTests
     public void DeleteEvent_ExistingEvent_DeletesEventAndReturnsTrue()
     {
         // Arrange
-        var id = AddTestEvent();
+        var testEvent = AddTestEvent();
 
         // Act
-        var isDeleted = _repository.DeleteEvent(id);
-        var deletedEvent = _repository.GetEventById(id);
+        var isDeleted = _repository.DeleteEvent(testEvent.Id);
+        var deletedEvent = _repository.GetEventById(testEvent.Id);
 
         // Assert
         Assert.True(isDeleted);
@@ -116,13 +116,14 @@ public class EventsRepositoryTests
     public void GetEventById_ExistingEvent_ReturnsEvent()
     {
         // Arrange
-        var id = AddTestEvent();
+        var testEvent = AddTestEvent();
 
         // Act
-        var @event = _repository.GetEventById(id);
+        var @event = _repository.GetEventById(testEvent.Id);
 
         // Assert
         Assert.NotNull(@event);
+        @event.Should().BeEquivalentTo(testEvent);
     }
 
     [Fact]
