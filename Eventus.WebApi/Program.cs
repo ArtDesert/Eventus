@@ -5,7 +5,6 @@ using Eventus.WebApi.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
 builder.Services.AddAppServices();
 builder.Services.AddRepositories();
 builder.Services.AddControllers()
@@ -17,16 +16,16 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseStatusCodePages();
 app.UseRouting();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "v1"));
+}
+
 app.MapControllers();
-app.UseSwagger();
-app.UseSwaggerUI();
 
 app.Run();
