@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Eventus.Tests.Integration.Events;
 
-public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
+public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
@@ -100,7 +100,7 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         // Act
-        var response = await _client.PostAsJsonAsync("api/events", request);
+        var response = await _client.PostAsJsonAsync(RequestUri.Events, request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -117,7 +117,7 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync("api/events", content);
+        var response = await _client.PostAsync(RequestUri.Events, content);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -132,7 +132,7 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         // Act
-        var response = await _client.PostAsJsonAsync("api/events", request);
+        var response = await _client.PostAsJsonAsync(RequestUri.Events, request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -149,7 +149,7 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         // Act
-        var response = await _client.PutAsJsonAsync($"api/events/{EventId}", request);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{EventId}", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -166,7 +166,7 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PutAsync($"api/events/{EventId}", content);
+        var response = await _client.PutAsync($"{RequestUri.Events}{EventId}", content);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -180,13 +180,13 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
         string _, EventBaseRequest request)
     {
         // Arrange
-        var id = Guid.NewGuid();
+        var randomId = Guid.NewGuid();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"api/events/{id}", request);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", request);
 
         // Assert
-        // We use a random ID so event is non-existent (404).
+        // We use a random ID, so event is non-existent (404).
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 

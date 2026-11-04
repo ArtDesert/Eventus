@@ -104,7 +104,7 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         // Act
-        var response = await _client.GetAsync($"/api/events?{query}");
+        var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -118,7 +118,7 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         // Act
-        var response = await _client.GetAsync($"/api/events?{query}");
+        var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
