@@ -2,5 +2,5 @@
 
 public static class RequestUri
 {
-    public const string Events = "/api/Events";
+    public const string Events = "/api/Events/";
 }
