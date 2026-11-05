@@ -1,10 +1,8 @@
 ﻿using System.Net;
-using System.Net.Http.Json;
 using Eventus.Api.Contracts.Requests.Events;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Eventus.Tests.Integration.Events;
+namespace Eventus.Tests.Integration.Events.Tests;
 
 public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
@@ -99,7 +97,7 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [MemberData(nameof(IncorrectQueries))]
-    public async Task GetEventsByFilter_IncorrectQuery_ReturnsValidationProblem(
+    public async Task GetEventsByFilter_IncorrectQuery_Returns400ProblemDetails(
         string _, string query, string field)
     {
         // Arrange
@@ -107,7 +105,7 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
         var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
     
         // Assert
-        await AssertProblemDetails.IsValid400ErrorAsync(response, field);
+        await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
 
     [Theory]

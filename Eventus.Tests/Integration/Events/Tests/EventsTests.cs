@@ -5,7 +5,7 @@ using Eventus.Api.Contracts.Requests.Events;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Eventus.Tests.Integration.Events;
+namespace Eventus.Tests.Integration.Events.Tests;
 
 public class EventsTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
@@ -34,7 +34,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     #region GetEvent
 
     [Fact]
-    public async Task GetEventById_NonExistentEvent_ReturnsNotFoundProblem()
+    public async Task GetEventById_NonExistentEvent_Returns404ProblemDetails()
     {
         // Arrange
         var randomId = Guid.NewGuid();
@@ -43,7 +43,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var response = await _client.GetAsync($"{RequestUri.Events}{randomId}");
 
         // Assert
-        await AssertProblemDetails.IsValid404ErrorAsync(response);
+        await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     #region UpdateEvent
 
     [Fact]
-    public async Task UpdateEvent_NonExistentEvent_ReturnsNotFoundProblem()
+    public async Task UpdateEvent_NonExistentEvent_Returns404ProblemDetails()
     {
         // Arrange
         var randomId = Guid.NewGuid();
@@ -78,11 +78,11 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", TestEventBaseRequest);
 
         // Assert
-        await AssertProblemDetails.IsValid404ErrorAsync(response);
+        await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
     }
 
     [Fact]
-    public async Task UpdateEvent_ExistingEvent_UpdatingIsSuccessful()
+    public async Task UpdateEvent_ExistingEvent_UpdateIsSuccessful()
     {
         // Arrange
         var createdEvent = await CreateTestEventAsync(TestEventBaseRequest);
@@ -116,7 +116,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     #region DeleteEvent
 
     [Fact]
-    public async Task DeleteEvent_NonExistentEvent_ReturnsNotFoundProblem()
+    public async Task DeleteEvent_NonExistentEvent_Returns404ProblemDetails()
     {
         // Arrange
         var randomId = Guid.NewGuid();
@@ -125,7 +125,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var response = await _client.DeleteAsync($"{RequestUri.Events}{randomId}");
 
         // Assert
-        await AssertProblemDetails.IsValid404ErrorAsync(response);
+        await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
     }
 
     [Fact]
@@ -136,10 +136,10 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var id = createdEvent.Id;
 
         // Act
-        var deletionResponse = await _client.DeleteAsync($"{RequestUri.Events}{id}");
+        var response = await _client.DeleteAsync($"{RequestUri.Events}{id}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, deletionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         var gettingResponseAfterDeletion = await _client.GetAsync($"{RequestUri.Events}{id}");
         Assert.Equal(HttpStatusCode.NotFound, gettingResponseAfterDeletion.StatusCode);
     }
