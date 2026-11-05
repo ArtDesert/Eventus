@@ -99,17 +99,15 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [MemberData(nameof(IncorrectQueries))]
-    public async Task GetEventsByFilter_IncorrectQuery_Returns400WithProblemKey(
+    public async Task GetEventsByFilter_IncorrectQuery_ReturnsValidationProblem(
         string _, string query, string field)
     {
         // Arrange
         // Act
         var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
-
+    
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ErrorAsync(response, field);
     }
 
     [Theory]

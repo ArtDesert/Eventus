@@ -2,12 +2,11 @@
 using System.Net.Http.Json;
 using System.Text;
 using Eventus.Api.Contracts.Requests.Events;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Eventus.Tests.Integration.Events;
 
-public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> factory)
+public class EventBaseRequestValidationTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
@@ -95,7 +94,7 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
 
     [Theory]
     [MemberData(nameof(IncorrectRequests))]
-    public async Task CreateEvent_InvalidRequest_Returns400WithProblemKey(
+    public async Task CreateEvent_InvalidRequest_ReturnsValidationProblem(
         string _, EventBaseRequest request, string field)
     {
         // Arrange
@@ -103,14 +102,12 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
         var response = await _client.PostAsJsonAsync(RequestUri.Events, request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ErrorAsync(response, field);
     }
 
     [Theory]
     [MemberData(nameof(IncorrectJsons))]
-    public async Task CreateEvent_IncorrectJsonAsBody_Returns400WithProblemKey(
+    public async Task CreateEvent_IncorrectJsonAsBody_ReturnsValidationProblem(
         string _, string json, string field)
     {
         // Arrange
@@ -120,9 +117,7 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
         var response = await _client.PostAsync(RequestUri.Events, content);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ErrorAsync(response, field);
     }
 
     [Theory]
@@ -144,7 +139,7 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
 
     [Theory]
     [MemberData(nameof(IncorrectRequests))]
-    public async Task UpdateEvent_InvalidRequest_Returns400WithProblemKey(
+    public async Task UpdateEvent_InvalidRequest_ReturnsValidationProblem(
         string _, EventBaseRequest request, string field)
     {
         // Arrange
@@ -152,14 +147,12 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
         var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{EventId}", request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ErrorAsync(response, field);
     }
 
     [Theory]
     [MemberData(nameof(IncorrectJsons))]
-    public async Task UpdateEvent_IncorrectJsonAsBody_Returns400(
+    public async Task UpdateEvent_IncorrectJsonAsBody_ReturnsValidationProblem(
         string _, string json, string field)
     {
         // Arrange
@@ -169,14 +162,12 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
         var response = await _client.PutAsync($"{RequestUri.Events}{EventId}", content);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ErrorAsync(response, field);
     }
 
     [Theory]
     [MemberData(nameof(CorrectRequests))]
-    public async Task UpdateEvent_ValidationPassed_Returns404(
+    public async Task UpdateEvent_ValidationPassed_ReturnsNotFoundProblem(
         string _, EventBaseRequest request)
     {
         // Arrange
@@ -187,7 +178,7 @@ public class CreateOrUpdateEventValidationTests(WebApplicationFactory<Program> f
 
         // Assert
         // We use a random ID, so event is non-existent (404).
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        await AssertProblemDetails.IsValid404ErrorAsync(response);
     }
 
     #endregion

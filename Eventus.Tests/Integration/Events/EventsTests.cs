@@ -34,7 +34,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     #region GetEvent
 
     [Fact]
-    public async Task GetEventById_NonExistentEvent_Returns404()
+    public async Task GetEventById_NonExistentEvent_ReturnsNotFoundProblem()
     {
         // Arrange
         var randomId = Guid.NewGuid();
@@ -43,7 +43,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var response = await _client.GetAsync($"{RequestUri.Events}{randomId}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        await AssertProblemDetails.IsValid404ErrorAsync(response);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     #region UpdateEvent
 
     [Fact]
-    public async Task UpdateEvent_NonExistentEvent_Returns404()
+    public async Task UpdateEvent_NonExistentEvent_ReturnsNotFoundProblem()
     {
         // Arrange
         var randomId = Guid.NewGuid();
@@ -78,7 +78,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", TestEventBaseRequest);
 
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        await AssertProblemDetails.IsValid404ErrorAsync(response);
     }
 
     [Fact]
@@ -116,16 +116,16 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     #region DeleteEvent
 
     [Fact]
-    public async Task DeleteEvent_NonExistentEvent_Returns404()
+    public async Task DeleteEvent_NonExistentEvent_ReturnsNotFoundProblem()
     {
         // Arrange
         var randomId = Guid.NewGuid();
 
         // Act
-        var deletionResponse = await _client.DeleteAsync($"{RequestUri.Events}{randomId}");
+        var response = await _client.DeleteAsync($"{RequestUri.Events}{randomId}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, deletionResponse.StatusCode);
+        await AssertProblemDetails.IsValid404ErrorAsync(response);
     }
 
     [Fact]
