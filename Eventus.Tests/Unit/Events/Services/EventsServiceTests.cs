@@ -14,17 +14,19 @@ public class EventsServiceTests
 {
     private readonly Mock<IEventsRepository> _repositoryMock;
     private readonly IEventsService _service;
+    private readonly CancellationToken _token;
 
     public EventsServiceTests()
     {
         _repositoryMock = new Mock<IEventsRepository>();
         _service = new EventsService(_repositoryMock.Object);
+        _token = CancellationToken.None;
     }
 
     #region PositiveCases
 
     [Fact]
-    public void CreateEvent_CorrectRequest_ReturnsCreatedEvent()
+    public async Task CreateEvent_CorrectRequest_ReturnsCreatedEvent()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -39,17 +41,17 @@ public class EventsServiceTests
             request.Description,
             request.StartAt,
             request.EndAt);
-        _repositoryMock.Setup(mock => mock.CreateEvent(request)).Returns(expected);
+        _repositoryMock.Setup(mock => mock.CreateEventAsync(request, _token)).ReturnsAsync(expected);
 
         // Act
-        var actual = _service.CreateEvent(request);
+        var actual = await _service.CreateEventAsync(request, _token);
 
         // Assert
         actual.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
-    public void GetEventsByFilter_RepositoryReturnsEvents_MapsToPaginatedResultDto()
+    public async Task GetEventsByFilter_RepositoryReturnsEvents_MapsToPaginatedResultDto()
     {
         // Arrange
         var request = new GetEventsByFilterRequest(null, null, null, 5, 10);
@@ -71,8 +73,8 @@ public class EventsServiceTests
             Page = 5,
             ItemsCount = 1
         };
-        _repositoryMock.Setup(mock => mock.GetEventsByFilter(request))
-            .Returns(new PaginatedEventsResult(41, [
+        _repositoryMock.Setup(mock => mock.GetEventsByFilterAsync(request, _token))
+            .ReturnsAsync(new PaginatedEventsResult(41, [
                 new Event(
                     id,
                     "TITLE",
@@ -82,7 +84,7 @@ public class EventsServiceTests
             ]));
 
         // Act
-        var actual = _service.GetEventsByFilter(request);
+        var actual = await _service.GetEventsByFilterAsync(request, _token);
 
         // Assert
         Assert.NotNull(actual);
@@ -90,7 +92,7 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetEventById_ExistingEvent_ReturnsEvent()
+    public async Task GetEventById_ExistingEvent_ReturnsEvent()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -100,10 +102,10 @@ public class EventsServiceTests
             null,
             new DateTime(2000, 1, 1),
             new DateTime(2005, 1, 1));
-        _repositoryMock.Setup(mock => mock.GetEventById(id)).Returns(expected);
+        _repositoryMock.Setup(mock => mock.GetEventByIdAsync(id, _token)).ReturnsAsync(expected);
 
         // Act
-        var actual = _service.GetEventById(id);
+        var actual = await _service.GetEventByIdAsync(id, _token);
 
         // Assert
         Assert.NotNull(actual);
@@ -111,7 +113,7 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void UpdateEvent_ExistingEvent_DelegatesToRepository()
+    public async Task UpdateEvent_ExistingEvent_DelegatesToRepository()
     {
         // Arrange
         var request = new UpdateEventRequest(
@@ -120,29 +122,29 @@ public class EventsServiceTests
             null,
             new DateTime(2000, 1, 1),
             new DateTime(2005, 1, 1));
-        _repositoryMock.Setup(mock => mock.UpdateEvent(request)).Returns(true);
+        _repositoryMock.Setup(mock => mock.UpdateEventAsync(request, _token)).ReturnsAsync(true);
 
         // Act
-        var exception = Record.Exception(() => _service.UpdateEvent(request));
+        var exception = await Record.ExceptionAsync(() => _service.UpdateEventAsync(request, _token));
 
         // Assert
         Assert.Null(exception);
-        _repositoryMock.Verify(mock => mock.UpdateEvent(request), Times.Once);
+        _repositoryMock.Verify(mock => mock.UpdateEventAsync(request, _token), Times.Once);
     }
 
     [Fact]
-    public void DeleteEvent_ExistingEvent_DelegatesToRepository()
+    public async Task DeleteEvent_ExistingEvent_DelegatesToRepository()
     {
         // Arrange
         var id = Guid.NewGuid();
-        _repositoryMock.Setup(mock => mock.DeleteEvent(id)).Returns(true);
+        _repositoryMock.Setup(mock => mock.DeleteEventAsync(id, _token)).ReturnsAsync(true);
 
         // Act
-        var exception = Record.Exception(() => _service.DeleteEvent(id));
+        var exception = await Record.ExceptionAsync(() => _service.DeleteEventAsync(id, _token));
 
         // Assert
         Assert.Null(exception);
-        _repositoryMock.Verify(mock => mock.DeleteEvent(id), Times.Once);
+        _repositoryMock.Verify(mock => mock.DeleteEventAsync(id, _token), Times.Once);
     }
 
     #endregion Positive cases.
@@ -150,19 +152,19 @@ public class EventsServiceTests
     #region NegativeCases
 
     [Fact]
-    public void GetEventById_NonExistentEvent_ThrowsNotFoundException()
+    public async Task GetEventById_NonExistentEvent_ThrowsNotFoundException()
     {
         // Arrange
         var id = Guid.NewGuid();
         Event? expected = null;
-        _repositoryMock.Setup(mock => mock.GetEventById(id)).Returns(expected);
+        _repositoryMock.Setup(mock => mock.GetEventByIdAsync(id, _token)).ReturnsAsync(expected);
 
         // Act & Assert
-        Assert.Throws<NotFoundException>(() => _service.GetEventById(id));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetEventByIdAsync(id, _token));
     }
 
     [Fact]
-    public void UpdateEvent_NonExistentEvent_ThrowsNotFoundException()
+    public async Task UpdateEvent_NonExistentEvent_ThrowsNotFoundException()
     {
         // Arrange
         var request = new UpdateEventRequest(
@@ -171,23 +173,23 @@ public class EventsServiceTests
             null,
             new DateTime(2000, 1, 1),
             new DateTime(2005, 1, 1));
-        _repositoryMock.Setup(mock => mock.UpdateEvent(request)).Returns(false);
+        _repositoryMock.Setup(mock => mock.UpdateEventAsync(request, _token)).ReturnsAsync(false);
 
         // Act & Assert
-        Assert.Throws<NotFoundException>(() => _service.UpdateEvent(request));
-        _repositoryMock.Verify(mock => mock.UpdateEvent(request), Times.Once);
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateEventAsync(request, _token));
+        _repositoryMock.Verify(mock => mock.UpdateEventAsync(request, _token), Times.Once);
     }
 
     [Fact]
-    public void DeleteEvent_NonExistentEvent_ThrowsNotFoundException()
+    public async Task DeleteEvent_NonExistentEvent_ThrowsNotFoundException()
     {
         // Arrange
         var id = Guid.NewGuid();
-        _repositoryMock.Setup(mock => mock.DeleteEvent(id)).Returns(false);
+        _repositoryMock.Setup(mock => mock.DeleteEventAsync(id, _token)).ReturnsAsync(false);
 
         // Act & Assert
-        Assert.Throws<NotFoundException>(() => _service.DeleteEvent(id));
-        _repositoryMock.Verify(mock => mock.DeleteEvent(id), Times.Once);
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteEventAsync(id, _token));
+        _repositoryMock.Verify(mock => mock.DeleteEventAsync(id, _token), Times.Once);
     }
 
     #endregion

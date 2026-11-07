@@ -9,15 +9,19 @@ namespace Eventus.WebApi.Controllers;
 public class BookingsController(IBookingsService bookingsService) : ControllerBase, IBookingsController
 {
     [HttpPost("events/{eventId:guid}/book")]
-    public ActionResult<BookingDto> CreateBooking([FromRoute] Guid eventId)
+    public async Task<ActionResult<BookingDto>> CreateBooking(
+        [FromRoute] Guid eventId,
+        CancellationToken token)
     {
-        var createdBooking = bookingsService.CreateBookingAsync(eventId);
+        var createdBooking = await bookingsService.CreateBookingAsync(eventId, token);
         return AcceptedAtAction(nameof(GetBookingById), new { id = createdBooking.Id }, createdBooking);
     }
 
     [HttpGet("bookings/{id:guid}")]
-    public ActionResult<BookingDto> GetBookingById([FromRoute] Guid id)
+    public async Task<ActionResult<BookingDto>> GetBookingById(
+        [FromRoute] Guid id,
+        CancellationToken token)
     {
-        return bookingsService.GetBookingByIdAsync(id);
+        return await bookingsService.GetBookingByIdAsync(id, token);
     }
 }

@@ -29,7 +29,7 @@ public class BookingCreationService(
                     using ( var scope = scopeFactory.CreateScope())
                     {
                         var bookingsService = scope.ServiceProvider.GetRequiredService<IBookingsService>();
-                        bookingsService.CompleteCreationOfBooking(task.BookingId);
+                        await bookingsService.ConfirmBookingAsync(task.BookingId, stoppingToken);
                     }
                     
                     logger.LogInformation("Booking task: {TaskId} has been completed successfully.", task.Id);

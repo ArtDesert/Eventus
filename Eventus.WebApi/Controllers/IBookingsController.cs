@@ -5,7 +5,7 @@ namespace Eventus.WebApi.Controllers;
 
 public interface IBookingsController
 {
-    ActionResult<BookingDto> CreateBooking(Guid eventId);
+    Task<ActionResult<BookingDto>> CreateBooking(Guid eventId, CancellationToken token = default);
 
-    ActionResult<BookingDto> GetBookingById(Guid id);
+    Task<ActionResult<BookingDto>> GetBookingById(Guid id, CancellationToken token = default);
 }

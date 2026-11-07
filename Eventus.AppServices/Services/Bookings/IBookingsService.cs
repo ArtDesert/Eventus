@@ -4,9 +4,9 @@ namespace Eventus.AppServices.Services.Bookings;
 
 public interface IBookingsService
 {
-    BookingDto CreateBookingAsync(Guid eventId);
+    Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken token);
 
-    BookingDto GetBookingByIdAsync(Guid id);
-    
-    void CompleteCreationOfBooking(Guid bookingId);
+    Task<BookingDto> GetBookingByIdAsync(Guid id, CancellationToken token);
+
+    Task ConfirmBookingAsync(Guid bookingId, CancellationToken token);
 }

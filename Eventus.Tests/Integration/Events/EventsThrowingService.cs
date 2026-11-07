@@ -6,27 +6,28 @@ namespace Eventus.Tests.Integration.Events;
 
 public class EventsThrowingService : IEventsService
 {
-    public PaginatedEventsResultDto GetEventsByFilter(GetEventsByFilterRequest request)
+    public Task<PaginatedEventsResultDto> GetEventsByFilterAsync(
+        GetEventsByFilterRequest request, CancellationToken token)
     {
         throw new InvalidOperationException();
     }
 
-    public EventDto GetEventById(Guid id)
+    public Task<EventDto> GetEventByIdAsync(Guid id, CancellationToken token)
     {
         throw new InvalidOperationException();
     }
 
-    public EventDto CreateEvent(CreateEventRequest request)
+    public Task<EventDto> CreateEventAsync(CreateEventRequest request, CancellationToken token)
     {
         throw new InvalidOperationException();
     }
 
-    public void UpdateEvent(UpdateEventRequest request)
+    public Task UpdateEventAsync(UpdateEventRequest request, CancellationToken token)
     {
         throw new InvalidOperationException();
     }
 
-    public void DeleteEvent(Guid id)
+    public Task DeleteEventAsync(Guid id, CancellationToken token)
     {
         throw new InvalidOperationException();
     }

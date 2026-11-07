@@ -13,24 +13,24 @@ internal class BookingsService(
     IEventsService eventsService,
     IBookingTaskQueue bookingTaskQueue) : IBookingsService
 {
-    public BookingDto CreateBookingAsync(Guid eventId)
+    public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken token)
     {
-        var @event = eventsService.GetEventById(eventId);
+        var @event = eventsService.GetEventByIdAsync(eventId, token);
         if (@event == null)
         {
             throw new NotFoundException($"Event with ID: {eventId} not found.");
         }
 
-        var createdBooking = repository.CreateBookingAsync(eventId);
+        var createdBooking = await repository.CreateBookingAsync(eventId, token);
         var task = new BookingTask(Guid.NewGuid(), createdBooking.Id);
         bookingTaskQueue.Enqueue(task);
-        
+
         return MapToBookingDto(createdBooking);
     }
 
-    public BookingDto GetBookingByIdAsync(Guid id)
+    public async Task<BookingDto> GetBookingByIdAsync(Guid id, CancellationToken token)
     {
-        var booking = repository.GetBookingByIdAsync(id);
+        var booking = await repository.GetBookingByIdAsync(id, token);
         if (booking == null)
         {
             throw new NotFoundException($"Booking with ID: {id} not found.");
@@ -39,9 +39,9 @@ internal class BookingsService(
         return MapToBookingDto(booking);
     }
 
-    public void CompleteCreationOfBooking(Guid bookingId)
+    public async Task ConfirmBookingAsync(Guid bookingId, CancellationToken token)
     {
-        var booking = repository.GetBookingByIdAsync(bookingId);
+        var booking = await repository.GetBookingByIdAsync(bookingId, token);
         if (booking == null)
         {
             throw new NotFoundException($"Booking with ID: {bookingId} not found.");
@@ -50,7 +50,7 @@ internal class BookingsService(
         // todo: check if an event was deleted
 
         var completedBooking = booking.Confirm();
-        if (!repository.TryUpdateBooking(booking, completedBooking))
+        if (! await repository.TryUpdateBookingAsync(booking, completedBooking, token))
         {
             throw new BookingProcessingException("Booking was modified concurrently.");
         }

@@ -4,9 +4,9 @@ namespace Eventus.AppServices.Repositories.Bookings;
 
 public interface IBookingsRepository
 {
-    Booking CreateBookingAsync(Guid eventId);
-    
-    Booking? GetBookingByIdAsync(Guid id);
-    
-    bool TryUpdateBooking(Booking current, Booking updated);
+    Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken token);
+
+    Task<Booking?> GetBookingByIdAsync(Guid id, CancellationToken token);
+
+    Task<bool> TryUpdateBookingAsync(Booking current, Booking updated, CancellationToken token);
 }
