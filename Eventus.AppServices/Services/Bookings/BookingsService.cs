@@ -49,7 +49,7 @@ internal class BookingsService(
 
         // todo: check if an event was deleted
 
-        var completedBooking = booking.CompleteCreation();
+        var completedBooking = booking.Confirm();
         if (!repository.TryUpdateBooking(booking, completedBooking))
         {
             throw new BookingProcessingException("Booking was modified concurrently.");

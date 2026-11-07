@@ -29,7 +29,7 @@ public class Booking
     {
     }
 
-    public Booking CompleteCreation()
+    public Booking Confirm()
     {
         if (Status == BookingStatus.Pending)
         {
