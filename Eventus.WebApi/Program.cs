@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Eventus.AppServices.Extensions;
+using Eventus.AppServices.Services.Bookings;
 using Eventus.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,10 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddAppServices();
 builder.Services.AddRepositories();
+builder.Services.AddQueues();
+builder.Services.AddHostedService<BookingCreationService>(); 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 builder.Services.AddProblemDetails();
 
