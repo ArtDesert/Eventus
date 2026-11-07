@@ -4,6 +4,16 @@ namespace Eventus.AppServices.Data.Domain.Events;
 
 public class Event
 {
+    public Guid Id { get; }
+
+    public string Title { get; }
+
+    public string? Description { get; }
+
+    public DateTime StartAt { get; }
+
+    public DateTime EndAt { get; }
+
     public Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -18,12 +28,12 @@ public class Event
 
         if (endAt == default)
         {
-            throw new DomainValidationException("End date must be filled.",  nameof(EndAt));
+            throw new DomainValidationException("End date must be filled.", nameof(EndAt));
         }
 
         if (startAt > endAt)
         {
-            throw new DomainValidationException("Start date must not be later than end date.",  nameof(StartAt));
+            throw new DomainValidationException("Start date must not be later than end date.", nameof(StartAt));
         }
 
         Id = id;
@@ -32,14 +42,4 @@ public class Event
         StartAt = startAt;
         EndAt = endAt;
     }
-
-    public Guid Id { get; }
-
-    public string Title { get; }
-
-    public string? Description { get; }
-
-    public DateTime StartAt { get; }
-
-    public DateTime EndAt { get; }
 }

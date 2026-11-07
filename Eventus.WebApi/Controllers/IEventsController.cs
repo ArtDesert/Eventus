@@ -1,4 +1,5 @@
-﻿using Eventus.Api.Contracts.Dto.Events;
+﻿using Eventus.Api.Contracts.Dto.Bookings;
+using Eventus.Api.Contracts.Dto.Events;
 using Eventus.Api.Contracts.Requests.Events;
 using Microsoft.AspNetCore.Mvc;
 
