@@ -1,14 +1,14 @@
 ﻿using Eventus.Api.Contracts.Dto.Bookings;
 using Eventus.AppServices.Services.Bookings;
+using Eventus.WebApi.Controllers.WebRoutes;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eventus.WebApi.Controllers;
 
 [ApiController]
-[Route("api")]
 public class BookingsController(IBookingsService bookingsService) : ControllerBase, IBookingsController
 {
-    [HttpPost("events/{eventId:guid}/book")]
+    [HttpPost(BookingsControllerWebRoutes.CreateBooking)]
     public async Task<ActionResult<BookingDto>> CreateBooking(
         [FromRoute] Guid eventId,
         CancellationToken token)
@@ -17,7 +17,7 @@ public class BookingsController(IBookingsService bookingsService) : ControllerBa
         return AcceptedAtAction(nameof(GetBookingById), new { id = createdBooking.Id }, createdBooking);
     }
 
-    [HttpGet("bookings/{id:guid}")]
+    [HttpGet(BookingsControllerWebRoutes.GetBookingById)]
     public async Task<ActionResult<BookingDto>> GetBookingById(
         [FromRoute] Guid id,
         CancellationToken token)

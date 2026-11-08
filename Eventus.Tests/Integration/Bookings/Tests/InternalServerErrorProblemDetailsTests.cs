@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Eventus.AppServices.Services.Bookings;
+﻿using Eventus.AppServices.Services.Bookings;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,10 +18,9 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        var content = new StringContent(string.Empty, Encoding.UTF8, "text/plain");
 
         // Act
-        var response = await _client.PostAsync($"api/events/{eventId}/book", content);
+        var response = await _client.PostAsync($"api/events/{eventId}/book", content: null);
 
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);

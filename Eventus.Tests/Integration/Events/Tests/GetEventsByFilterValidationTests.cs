@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Eventus.Tests.Integration.Events.Tests;
 
-public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
+public class GetEventsByFilterValidationTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();

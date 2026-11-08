@@ -1,5 +1,8 @@
-﻿namespace Eventus.Api.Contracts.Enums.Bookings;
+﻿using System.Text.Json.Serialization;
 
+namespace Eventus.Api.Contracts.Enums.Bookings;
+
+[JsonConverter(typeof(JsonStringEnumConverter<BookingStatus>))]
 public enum BookingStatus
 {
     Unknown = 0,

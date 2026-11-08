@@ -15,7 +15,7 @@ internal class BookingsService(
 {
     public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken token)
     {
-        var @event = eventsService.GetEventByIdAsync(eventId, token);
+        var @event = await eventsService.GetEventByIdAsync(eventId, token);
         if (@event == null)
         {
             throw new NotFoundException($"Event with ID: {eventId} not found.");
