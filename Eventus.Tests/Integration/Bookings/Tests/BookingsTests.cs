@@ -1,9 +1,8 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using Eventus.Api.Contracts.Dto.Bookings;
-using Eventus.Api.Contracts.Dto.Events;
 using Eventus.Api.Contracts.Enums.Bookings;
-using Eventus.Api.Contracts.Requests.Events;
+using Eventus.Tests.Integration.Events;
 using Eventus.WebApi.Controllers.WebRoutes;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -13,24 +12,6 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
-    private static readonly DateTime StartDate = DateTime.UtcNow.AddHours(24);
-
-    private readonly EventBaseRequest _testEventBaseRequest = new EventBaseRequest
-    {
-        Title = "Test",
-        Description = "Description",
-        StartAt = StartDate,
-        EndAt = StartDate.AddHours(24),
-    };
-
-    private async Task<EventDto> CreateTestEventAsync(EventBaseRequest request)
-    {
-        var creationResponse = await _client.PostAsJsonAsync(RequestUri.Events, request);
-        Assert.Equal(HttpStatusCode.Created, creationResponse.StatusCode);
-        var createdEvent = await creationResponse.Content.ReadFromJsonAsync<EventDto>();
-        Assert.NotNull(createdEvent);
-        return createdEvent;
-    }
 
     private async Task<BookingDto> WaitForBookingStatusAsync(
         Guid bookingId, BookingStatus expected, TimeSpan timeout)
@@ -63,7 +44,7 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
 
         // Act
         var response = await _client.PostAsync(
-            BookingsControllerWebRoutes.CreateBookingUrl(randomEventId), null);
+            BookingsControllerWebRoutes.CreateBookingUrl(randomEventId), content: null);
 
         // Assert
         await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
@@ -73,7 +54,7 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
     public async Task CreateBooking_ExistingEvent_CreationAndAsyncConfirmationAreSuccessful()
     {
         // Arrange
-        var @event = await CreateTestEventAsync(_testEventBaseRequest);
+        var @event = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
         var eventId = @event.Id;
 
         // Act
@@ -108,7 +89,7 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
     public async Task CreateBooking_CreateSomeBookingsForExistentEvent_AllBookingsAreUnique()
     {
         // Arrange
-        var @event = await CreateTestEventAsync(_testEventBaseRequest);
+        var @event = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
 
         // Act
         var responses = await Task.WhenAll(
@@ -150,7 +131,7 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
     public async Task GetBookingById_ExistingBooking_ReturnsBooking()
     {
         // Arrange
-        var @event = await CreateTestEventAsync(_testEventBaseRequest);
+        var @event = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
         var eventId = @event.Id;
         var creationResponse = await _client.PostAsync(
             BookingsControllerWebRoutes.CreateBookingUrl(eventId), content: null);

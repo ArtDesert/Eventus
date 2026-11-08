@@ -15,20 +15,12 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
                 services.AddScoped<IEventsService, EventsThrowingService>()))
         .CreateClient();
     
-    private static EventBaseRequest TestEventBaseRequest => new EventBaseRequest
-    {
-        Title = "Test",
-        Description = "Description",
-        StartAt = new DateTime(2000, 1, 1),
-        EndAt = new DateTime(2000, 1, 1)
-    };
-    
     [Fact]
     public async Task CreateEvent_EventsServiceThrowsException_Returns500ProblemDetails()
     {
         // Arrange
         // Act
-        var response = await _client.PostAsJsonAsync(RequestUri.Events, TestEventBaseRequest);
+        var response = await _client.PostAsJsonAsync(RequestUri.Events, EventsData.TestEventBaseRequest);
 
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);
@@ -66,7 +58,7 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
         var id = Guid.NewGuid();
         
         // Act
-        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", TestEventBaseRequest);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", EventsData.TestEventBaseRequest);
 
 
         // Assert

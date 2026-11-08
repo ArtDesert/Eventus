@@ -12,25 +12,6 @@ public class EventsTests(WebApplicationFactory<Program> factory)
 {
     private readonly HttpClient _client = factory.CreateClient();
 
-    private static EventBaseRequest TestEventBaseRequest => new EventBaseRequest
-    {
-        Title = "Test",
-        Description = "Description",
-        StartAt = new DateTime(2000, 1, 1),
-        EndAt = new DateTime(2000, 1, 1)
-    };
-    
-    private async Task<EventDto> CreateTestEventAsync(EventBaseRequest request)
-    {
-        var creationResponse = await _client.PostAsJsonAsync(RequestUri.Events, request);
-        
-        // Check the creation before the next action.
-        Assert.Equal(HttpStatusCode.Created, creationResponse.StatusCode);
-        var createdEvent = await creationResponse.Content.ReadFromJsonAsync<EventDto>();
-        Assert.NotNull(createdEvent);
-        return createdEvent;
-    }
-
     #region GetEvent
 
     [Fact]
@@ -50,7 +31,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     public async Task GetEventById_ExistingEvent_ReturnsEvent()
     {
         // Arrange
-        var createdEvent = await CreateTestEventAsync(TestEventBaseRequest);
+        var createdEvent = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
         var id = createdEvent.Id;
 
         // Act
@@ -61,7 +42,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var @event = await response.Content.ReadFromJsonAsync<EventDto>();
         Assert.NotNull(@event);
         Assert.Equal(id, @event.Id);
-        @event.Should().BeEquivalentTo(TestEventBaseRequest);
+        @event.Should().BeEquivalentTo(EventsData.TestEventBaseRequest);
     }
 
     #endregion
@@ -75,7 +56,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", TestEventBaseRequest);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", EventsData.TestEventBaseRequest);
 
         // Assert
         await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
@@ -85,7 +66,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     public async Task UpdateEvent_ExistingEvent_UpdateIsSuccessful()
     {
         // Arrange
-        var createdEvent = await CreateTestEventAsync(TestEventBaseRequest);
+        var createdEvent = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
         var id = createdEvent.Id;
         var updateRequest = new EventBaseRequest
         {
@@ -95,7 +76,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
             EndAt = new DateTime(2021, 4, 3),
         };
         // Check that the creation and update requests are different.
-        updateRequest.Should().NotBeEquivalentTo(TestEventBaseRequest);
+        updateRequest.Should().NotBeEquivalentTo(EventsData.TestEventBaseRequest);
 
         // Act
         var updateResponse = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", updateRequest);
@@ -103,7 +84,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, updateResponse.StatusCode);
         var gettingResponseAfterUpdate = await _client.GetAsync($"{RequestUri.Events}{id}");
-        
+
         Assert.Equal(HttpStatusCode.OK, gettingResponseAfterUpdate.StatusCode);
         var @event = await gettingResponseAfterUpdate.Content.ReadFromJsonAsync<EventDto>();
         Assert.NotNull(@event);
@@ -132,7 +113,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     public async Task DeleteEvent_ExistingEvent_DeletionIsSuccessful()
     {
         // Arrange
-        var createdEvent = await CreateTestEventAsync(TestEventBaseRequest);
+        var createdEvent = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
         var id = createdEvent.Id;
 
         // Act

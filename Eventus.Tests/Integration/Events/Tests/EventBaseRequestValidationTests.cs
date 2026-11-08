@@ -10,7 +10,7 @@ public class EventBaseRequestValidationTests(WebApplicationFactory<Program> fact
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
-    private static readonly DateTime StartDate = new(2026, 1, 1, 10, 0, 0);
+    private static readonly DateTime StartDate = DateTime.UtcNow.AddHours(24);
     private static readonly Guid EventId = Guid.Parse("75617c6b-1b3a-46ee-ad50-5135e8c894b7");
 
     private static EventBaseRequest BuildRequest(
