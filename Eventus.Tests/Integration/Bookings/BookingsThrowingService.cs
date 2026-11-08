@@ -7,16 +7,16 @@ public class BookingsThrowingService : IBookingsService
 {
     public Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken token)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public Task<BookingDto> GetBookingByIdAsync(Guid id, CancellationToken token)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public Task ConfirmBookingAsync(Guid bookingId, CancellationToken token)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 }
