@@ -9,7 +9,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddAppServices();
 builder.Services.AddRepositories();
 builder.Services.AddQueues();
-builder.Services.AddHostedService<BookingCreationService>(); 
+builder.Services.AddHostedService<BookingCreationService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

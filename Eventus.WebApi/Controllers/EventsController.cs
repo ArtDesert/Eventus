@@ -26,7 +26,7 @@ public class EventsController(IEventsService eventsService)
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<EventDto>> GetEventById(
-        [FromRoute] Guid id, CancellationToken  token) =>
+        [FromRoute] Guid id, CancellationToken token) =>
         await eventsService.GetEventByIdAsync(id, token);
 
     [HttpPost]

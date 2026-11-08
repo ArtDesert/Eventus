@@ -14,7 +14,7 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
             builder.ConfigureTestServices(services =>
                 services.AddScoped<IEventsService, EventsThrowingService>()))
         .CreateClient();
-    
+
     [Fact]
     public async Task CreateEvent_EventsServiceThrowsException_Returns500ProblemDetails()
     {
@@ -25,20 +25,20 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);
     }
-    
+
     [Fact]
     public async Task GetEventById_EventsServiceThrowsException_Returns500ProblemDetails()
     {
         // Arrange
         var id = Guid.NewGuid();
-        
+
         // Act
         var response = await _client.GetAsync($"{RequestUri.Events}{id}");
 
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);
     }
-    
+
     [Fact]
     public async Task GetEventsByFilter_EventsServiceThrowsException_Returns500ProblemDetails()
     {
@@ -50,13 +50,13 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);
     }
-    
+
     [Fact]
     public async Task UpdateEvent_EventsServiceThrowsException_Returns500ProblemDetails()
     {
         // Arrange
         var id = Guid.NewGuid();
-        
+
         // Act
         var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", EventsData.TestEventBaseRequest);
 
@@ -64,7 +64,7 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);
     }
-    
+
     [Fact]
     public async Task DeleteEvent_EventsServiceThrowsException_Returns500ProblemDetails()
     {

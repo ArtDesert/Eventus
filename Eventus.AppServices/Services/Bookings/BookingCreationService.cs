@@ -14,7 +14,7 @@ public class BookingCreationService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("BookingCreationService started.");
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -25,13 +25,13 @@ public class BookingCreationService(
 
                     // Simulation of processing...
                     await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
-                    
-                    using ( var scope = scopeFactory.CreateScope())
+
+                    using (var scope = scopeFactory.CreateScope())
                     {
                         var bookingsService = scope.ServiceProvider.GetRequiredService<IBookingsService>();
                         await bookingsService.ConfirmBookingAsync(task.BookingId, stoppingToken);
                     }
-                    
+
                     logger.LogInformation("Booking task: {TaskId} has been completed successfully.", task.Id);
                 }
             }

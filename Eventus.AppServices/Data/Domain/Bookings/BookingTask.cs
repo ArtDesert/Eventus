@@ -8,10 +8,10 @@ public class BookingTask
         BookingId = bookingId;
         CreatedAt = DateTime.UtcNow;
     }
-    
+
     public Guid Id { get; }
-    
+
     public Guid BookingId { get; }
-    
+
     public DateTime CreatedAt { get; }
 }

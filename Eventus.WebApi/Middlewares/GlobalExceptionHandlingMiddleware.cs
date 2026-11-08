@@ -50,7 +50,9 @@ public class GlobalExceptionHandlingMiddleware(
 
         await problemDetailsService.WriteAsync(new ProblemDetailsContext
         {
-            HttpContext = httpContext, ProblemDetails = problemDetails, Exception = ex
+            HttpContext = httpContext,
+            ProblemDetails = problemDetails,
+            Exception = ex
         });
 
         return false;
@@ -67,7 +69,8 @@ public class GlobalExceptionHandlingMiddleware(
             NotFoundException e => new ProblemDetails { Status = StatusCodes.Status404NotFound, Detail = e.Message },
             _ => new ProblemDetails
             {
-                Status = StatusCodes.Status500InternalServerError, Detail = "An unexpected error occurred."
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = "An unexpected error occurred."
             }
         };
 }

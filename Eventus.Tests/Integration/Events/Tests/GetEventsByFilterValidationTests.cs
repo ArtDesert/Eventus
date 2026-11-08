@@ -103,7 +103,7 @@ public class GetEventsByFilterValidationTests(WebApplicationFactory<Program> fac
         // Arrange
         // Act
         var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
-    
+
         // Assert
         await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
