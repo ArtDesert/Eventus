@@ -6,13 +6,14 @@ namespace Eventus.WebApi.Controllers;
 
 public interface IEventsController
 {
-    ActionResult<PaginatedEventsResultDto> GetEventsByFilter(GetEventsByFilterRequest request);
+    Task<ActionResult<PaginatedEventsResultDto>> GetEventsByFilter(
+        GetEventsByFilterRequest request, CancellationToken token = default);
 
-    ActionResult<EventDto> GetEventById(Guid id);
+    Task<ActionResult<EventDto>> GetEventById(Guid id, CancellationToken token = default);
 
-    IActionResult CreateEvent(EventBaseRequest request);
+    Task<IActionResult> CreateEvent(EventBaseRequest request, CancellationToken token = default);
 
-    IActionResult UpdateEvent(Guid id, EventBaseRequest request);
+    Task<IActionResult> UpdateEvent(Guid id, EventBaseRequest request, CancellationToken token = default);
 
-    IActionResult DeleteEvent(Guid id);
+    Task<IActionResult> DeleteEvent(Guid id, CancellationToken token = default);
 }

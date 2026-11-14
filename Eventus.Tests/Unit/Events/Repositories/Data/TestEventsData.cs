@@ -1,4 +1,4 @@
-﻿using Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
 
 namespace Eventus.Tests.Unit.Events.Repositories.Data;
 
@@ -48,13 +48,13 @@ public static class TestEventsData
         null,
         new DateTime(2013, 5, 5),
         new DateTime(2023, 6, 6));
-    
+
     public static readonly Event DifficultEvent = new(
         Guid.Parse("ba6f8286-a536-45c0-89a2-d155988c0e93"),
         "Difficult event", null,
         new DateTime(2000, 12, 23),
         new DateTime(2019, 7, 21));
-    
+
     public static IReadOnlyList<Event> All =>
         [TheInternational, BlastSlam, PyrokinesisConcert, SimpleConstEvent, HappyNewYear, Event23, DifficultEvent];
 }

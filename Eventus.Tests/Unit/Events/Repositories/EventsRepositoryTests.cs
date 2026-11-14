@@ -1,4 +1,5 @@
-﻿using Eventus.AppServices.Data.Requests.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
+using Eventus.AppServices.Data.Requests.Events;
 using Eventus.AppServices.Repositories.Events;
 using FluentAssertions;
 
@@ -7,19 +8,20 @@ namespace Eventus.Tests.Unit.Events.Repositories;
 public class EventsRepositoryTests
 {
     private readonly IEventsRepository _repository = new EventsInMemoryRepository([]);
+    private readonly CancellationToken _token = CancellationToken.None;
 
-    private Guid AddTestEvent()
+    private async Task<Event> AddTestEvent()
     {
         var request = new CreateEventRequest(
             "Test event",
             "Test description",
             new DateTime(2026, 1, 1),
             new DateTime(2026, 1, 18));
-        return _repository.CreateEvent(request);
+        return await _repository.CreateEventAsync(request, _token);
     }
 
     [Fact]
-    public void CreateEvent_CorrectRequest_SavesEventWithAllProperties()
+    public async Task CreateEvent_CorrectRequest_SavesEventWithAllProperties()
     {
         // Arrange
         var request = new CreateEventRequest(
@@ -29,30 +31,31 @@ public class EventsRepositoryTests
             new DateTime(2026, 1, 18));
 
         // Act
-        var id = _repository.CreateEvent(request);
-        var @event = _repository.GetEventById(id);
+        var createdEvent = await _repository.CreateEventAsync(request, _token);
+        var @event = await _repository.GetEventByIdAsync(createdEvent.Id, _token);
 
         // Assert
+        Assert.NotNull(createdEvent);
+        createdEvent.Should().BeEquivalentTo(request);
         Assert.NotNull(@event);
-        Assert.Equal(id, @event.Id);
         @event.Should().BeEquivalentTo(request);
     }
 
     [Fact]
-    public void UpdateEvent_ExistingEvent_ReplacesAllProperties()
+    public async Task UpdateEvent_ExistingEvent_ReplacesAllProperties()
     {
         // Arrange
-        var id = AddTestEvent();
+        var testEvent = await AddTestEvent();
         var updateRequest = new UpdateEventRequest(
-            id,
+            testEvent.Id,
             "New title",
             "New description",
             new DateTime(2026, 1, 1, 10, 0, 0),
             new DateTime(2026, 1, 18, 10, 0, 0));
 
         // Act
-        var isUpdated = _repository.UpdateEvent(updateRequest);
-        var updatedEvent = _repository.GetEventById(id);
+        var isUpdated = await _repository.UpdateEventAsync(updateRequest, _token);
+        var updatedEvent = await _repository.GetEventByIdAsync(testEvent.Id, _token);
 
         // Assert
         Assert.True(isUpdated);
@@ -60,7 +63,7 @@ public class EventsRepositoryTests
     }
 
     [Fact]
-    public void UpdateEvent_NonExistentEvent_ReturnsFalse()
+    public async Task UpdateEvent_NonExistentEvent_ReturnsFalse()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -72,8 +75,8 @@ public class EventsRepositoryTests
             new DateTime(2026, 1, 18, 10, 0, 0));
 
         // Act
-        var isUpdated = _repository.UpdateEvent(updateRequest);
-        var nonExistentEvent = _repository.GetEventById(id);
+        var isUpdated = await _repository.UpdateEventAsync(updateRequest, _token);
+        var nonExistentEvent = await _repository.GetEventByIdAsync(id, _token);
 
         // Assert
         Assert.False(isUpdated);
@@ -81,14 +84,14 @@ public class EventsRepositoryTests
     }
 
     [Fact]
-    public void DeleteEvent_ExistingEvent_DeletesEventAndReturnsTrue()
+    public async Task DeleteEvent_ExistingEvent_DeletesEventAndReturnsTrue()
     {
         // Arrange
-        var id = AddTestEvent();
+        var testEvent = await AddTestEvent();
 
         // Act
-        var isDeleted = _repository.DeleteEvent(id);
-        var deletedEvent = _repository.GetEventById(id);
+        var isDeleted = await _repository.DeleteEventAsync(testEvent.Id, _token);
+        var deletedEvent = await _repository.GetEventByIdAsync(testEvent.Id, _token);
 
         // Assert
         Assert.True(isDeleted);
@@ -96,14 +99,14 @@ public class EventsRepositoryTests
     }
 
     [Fact]
-    public void DeleteEvent_NonExistentEvent_ReturnsFalse()
+    public async Task DeleteEvent_NonExistentEvent_ReturnsFalse()
     {
         // Arrange
         var id = Guid.NewGuid();
 
         // Act
-        var isDeleted = _repository.DeleteEvent(id);
-        var nonExistentEvent = _repository.GetEventById(id);
+        var isDeleted = await _repository.DeleteEventAsync(id, _token);
+        var nonExistentEvent = await _repository.GetEventByIdAsync(id, _token);
 
         // Assert 
         Assert.False(isDeleted);
@@ -111,26 +114,27 @@ public class EventsRepositoryTests
     }
 
     [Fact]
-    public void GetEventById_ExistingEvent_ReturnsEvent()
+    public async Task GetEventById_ExistingEvent_ReturnsEvent()
     {
         // Arrange
-        var id = AddTestEvent();
+        var testEvent = await AddTestEvent();
 
         // Act
-        var @event = _repository.GetEventById(id);
+        var @event = await _repository.GetEventByIdAsync(testEvent.Id, _token);
 
         // Assert
         Assert.NotNull(@event);
+        @event.Should().BeEquivalentTo(testEvent);
     }
 
     [Fact]
-    public void GetEventById_NonExistentEvent_ReturnsNull()
+    public async Task GetEventById_NonExistentEvent_ReturnsNull()
     {
         // Arrange
         var id = Guid.NewGuid();
 
         // Act
-        var @event = _repository.GetEventById(id);
+        var @event = await _repository.GetEventByIdAsync(id, _token);
 
         // Assert
         Assert.Null(@event);

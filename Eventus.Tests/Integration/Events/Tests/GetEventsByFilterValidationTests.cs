@@ -1,12 +1,10 @@
 ﻿using System.Net;
-using System.Net.Http.Json;
 using Eventus.Api.Contracts.Requests.Events;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Eventus.Tests.Integration.Events;
+namespace Eventus.Tests.Integration.Events.Tests;
 
-public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
+public class GetEventsByFilterValidationTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
@@ -99,26 +97,24 @@ public class GetEventsByFilterTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [MemberData(nameof(IncorrectQueries))]
-    public async Task GetEventsByFilter_IncorrectQuery_Returns400WithProblemKey(
-        string _, string query,  string field)
+    public async Task GetEventsByFilter_IncorrectQuery_Returns400ProblemDetails(
+        string _, string query, string field)
     {
         // Arrange
         // Act
-        var response = await _client.GetAsync($"/api/events?{query}");
+        var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
-    
+
     [Theory]
     [MemberData(nameof(CorrectQueries))]
     public async Task GetEventsByFilter_ValidationPassed_Returns200(string _, string query)
     {
         // Arrange
         // Act
-        var response = await _client.GetAsync($"/api/events?{query}");
+        var response = await _client.GetAsync($"{RequestUri.Events}?{query}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

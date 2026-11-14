@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Eventus.AppServices.Exceptions;
+﻿using Eventus.AppServices.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eventus.WebApi.Middlewares;
 
-public class GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlingMiddleware> logger)
+public class GlobalExceptionHandlingMiddleware(
+    RequestDelegate next,
+    IProblemDetailsService problemDetailsService,
+    ILogger<GlobalExceptionHandlingMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext httpContext)
     {
@@ -14,42 +16,61 @@ public class GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<Glo
         }
         catch (Exception ex)
         {
-            await HandleException(httpContext, ex);
+            var hasResponseStarted = await HandleException(httpContext, ex);
+            if (hasResponseStarted)
+            {
+                throw;
+            }
         }
     }
-    
-    private async Task HandleException(HttpContext httpContext, Exception ex)
+
+    private async Task<bool> HandleException(HttpContext httpContext, Exception ex)
     {
-        logger.LogError(
-            ex,
-            "Unhandled exception. Method={Method}, Path={Path}",
-            httpContext.Request.Method,
-            httpContext.Request.Path);
-            
+        var problemDetails = MapExceptionToProblemDetails(ex);
+        if (problemDetails.Status >= 500)
+        {
+            logger.LogError(
+                ex,
+                "Internal server error. Method={Method}, Path={Path}",
+                httpContext.Request.Method,
+                httpContext.Request.Path);
+        }
+        else
+        {
+            logger.LogInformation("Request failed with {StatusCode}: {Message}", problemDetails.Status, ex.Message);
+        }
+
         if (httpContext.Response.HasStarted)
         {
-            return;
+            return true;
         }
 
-        var statusCode = MapStatusCode(ex);
-        
-        httpContext.Response.StatusCode = statusCode;
-        httpContext.Response.ContentType = "application/json";
+        httpContext.Response.Clear();
+        httpContext.Response.StatusCode = problemDetails.Status!.Value;
 
-        var error = new ProblemDetails
+        await problemDetailsService.WriteAsync(new ProblemDetailsContext
         {
-            Status = statusCode,
-            Detail = ex.Message,
-        };
+            HttpContext = httpContext,
+            ProblemDetails = problemDetails,
+            Exception = ex
+        });
 
-        await httpContext.Response.WriteAsJsonAsync(error);
+        return false;
     }
-    
-    private static int MapStatusCode(Exception ex)
+
+    private static ProblemDetails MapExceptionToProblemDetails(Exception ex)
         => ex switch
         {
-            ValidationException => StatusCodes.Status400BadRequest,
-            NotFoundException => StatusCodes.Status404NotFound,
-            _ => StatusCodes.Status500InternalServerError,
+            DomainValidationException e => new ValidationProblemDetails(
+                new Dictionary<string, string[]> { [e.ProblemFieldName] = [e.Message] })
+            {
+                Status = StatusCodes.Status400BadRequest
+            },
+            NotFoundException e => new ProblemDetails { Status = StatusCodes.Status404NotFound, Detail = e.Message },
+            _ => new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = "An unexpected error occurred."
+            }
         };
 }

@@ -2,16 +2,15 @@
 using System.Net.Http.Json;
 using System.Text;
 using Eventus.Api.Contracts.Requests.Events;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Eventus.Tests.Integration.Events;
+namespace Eventus.Tests.Integration.Events.Tests;
 
-public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
+public class EventBaseRequestValidationTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
-    private static readonly DateTime StartDate = new(2026, 1, 1, 10, 0, 0);
+    private static readonly DateTime StartDate = DateTime.UtcNow.AddHours(24);
     private static readonly Guid EventId = Guid.Parse("75617c6b-1b3a-46ee-ad50-5135e8c894b7");
 
     private static EventBaseRequest BuildRequest(
@@ -19,12 +18,12 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
         string? description = null,
         DateTime? startAt = null,
         DateTime? endAt = null) => new()
-    {
-        Title = title,
-        Description = description,
-        StartAt = startAt ?? StartDate,
-        EndAt = endAt ?? StartDate.AddHours(5),
-    };
+        {
+            Title = title,
+            Description = description,
+            StartAt = startAt ?? StartDate,
+            EndAt = endAt ?? StartDate.AddHours(5),
+        };
 
     public static TheoryData<string, EventBaseRequest, string> IncorrectRequests => new()
     {
@@ -95,34 +94,30 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [MemberData(nameof(IncorrectRequests))]
-    public async Task CreateEvent_InvalidRequest_Returns400WithProblemKey(
+    public async Task CreateEvent_InvalidRequest_Returns400ProblemDetails(
         string _, EventBaseRequest request, string field)
     {
         // Arrange
         // Act
-        var response = await _client.PostAsJsonAsync("api/events", request);
+        var response = await _client.PostAsJsonAsync(RequestUri.Events, request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
 
     [Theory]
     [MemberData(nameof(IncorrectJsons))]
-    public async Task CreateEvent_IncorrectJsonAsBody_Returns400WithProblemKey(
+    public async Task CreateEvent_IncorrectJsonAsBody_Returns400ProblemDetails(
         string _, string json, string field)
     {
         // Arrange
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync("api/events", content);
+        var response = await _client.PostAsync(RequestUri.Events, content);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
 
     [Theory]
@@ -132,7 +127,7 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         // Act
-        var response = await _client.PostAsJsonAsync("api/events", request);
+        var response = await _client.PostAsJsonAsync(RequestUri.Events, request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -144,50 +139,46 @@ public class CreateOrUpdateEventTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [MemberData(nameof(IncorrectRequests))]
-    public async Task UpdateEvent_InvalidRequest_Returns400WithProblemKey(
+    public async Task UpdateEvent_InvalidRequest_Returns400ProblemDetails(
         string _, EventBaseRequest request, string field)
     {
         // Arrange
         // Act
-        var response = await _client.PutAsJsonAsync($"api/events/{EventId}", request);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{EventId}", request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
 
     [Theory]
     [MemberData(nameof(IncorrectJsons))]
-    public async Task UpdateEvent_IncorrectJsonAsBody_Returns400(
+    public async Task UpdateEvent_IncorrectJsonAsBody_Returns400ProblemDetails(
         string _, string json, string field)
     {
         // Arrange
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PutAsync($"api/events/{EventId}", content);
+        var response = await _client.PutAsync($"{RequestUri.Events}{EventId}", content);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains(field, problem!.Errors.Keys);
+        await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
     }
 
     [Theory]
     [MemberData(nameof(CorrectRequests))]
-    public async Task UpdateEvent_ValidationPassed_Returns404(
+    public async Task UpdateEvent_ValidationPassed_Returns404ProblemDetails(
         string _, EventBaseRequest request)
     {
         // Arrange
-        var id = Guid.NewGuid();
+        var randomId = Guid.NewGuid();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"api/events/{id}", request);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", request);
 
         // Assert
-        // We use a random ID so event is non-existent (404).
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        // We use a random ID, so event is non-existent (404).
+        await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
     }
 
     #endregion

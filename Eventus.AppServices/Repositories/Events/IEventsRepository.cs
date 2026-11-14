@@ -1,17 +1,19 @@
-﻿using Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
+using Eventus.AppServices.Data.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
 
 namespace Eventus.AppServices.Repositories.Events;
 
 public interface IEventsRepository
 {
-    PaginatedEventsResult GetEventsByFilter(GetEventsByFilterRequest request);
+    Task<PaginatedEventsResult> GetEventsByFilterAsync(
+        GetEventsByFilterRequest request, CancellationToken token);
 
-    Event? GetEventById(Guid id);
+    Task<Event?> GetEventByIdAsync(Guid id, CancellationToken token);
 
-    Guid CreateEvent(CreateEventRequest request);
+    Task<Event> CreateEventAsync(CreateEventRequest request, CancellationToken token);
 
-    bool UpdateEvent(UpdateEventRequest request);
+    Task<bool> UpdateEventAsync(UpdateEventRequest request, CancellationToken token);
 
-    bool DeleteEvent(Guid id);
+    Task<bool> DeleteEventAsync(Guid id, CancellationToken token);
 }

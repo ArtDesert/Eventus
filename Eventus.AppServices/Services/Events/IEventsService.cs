@@ -5,13 +5,13 @@ namespace Eventus.AppServices.Services.Events;
 
 public interface IEventsService
 {
-    PaginatedEventsResultDto GetEventsByFilter(GetEventsByFilterRequest request);
+    Task<PaginatedEventsResultDto> GetEventsByFilterAsync(GetEventsByFilterRequest request, CancellationToken token);
 
-    EventDto? GetEventById(Guid id);
+    Task<EventDto> GetEventByIdAsync(Guid id, CancellationToken token);
 
-    Guid CreateEvent(CreateEventRequest request);
+    Task<EventDto> CreateEventAsync(CreateEventRequest request, CancellationToken token);
 
-    void UpdateEvent(UpdateEventRequest request);
+    Task UpdateEventAsync(UpdateEventRequest request, CancellationToken token);
 
-    void DeleteEvent(Guid id);
+    Task DeleteEventAsync(Guid id, CancellationToken token);
 }

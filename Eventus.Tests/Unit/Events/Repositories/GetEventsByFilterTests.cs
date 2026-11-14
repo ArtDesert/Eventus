@@ -20,14 +20,14 @@ public class GetEventsByFilterTests
         MemberType = typeof(GetEventsByFilterTestCases))]
     [MemberData(nameof(GetEventsByFilterTestCases.CombinedFilterTestCases),
         MemberType = typeof(GetEventsByFilterTestCases))]
-    public void GetEventsByFilter_ChecksFilteredEventsWithCorrectOrder(
+    public async Task GetEventsByFilter_ChecksFilteredEventsWithCorrectOrder(
         string _,
         GetEventsByFilterRequest request,
         PaginatedEventsResult expected)
     {
         // Arrange
         // Act
-        var actual = _repository.GetEventsByFilter(request);
+        var actual = await _repository.GetEventsByFilterAsync(request, CancellationToken.None);
 
         // Assert
         actual.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());

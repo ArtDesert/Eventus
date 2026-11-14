@@ -1,31 +1,34 @@
 using System.Text.Json.Serialization;
 using Eventus.AppServices.Extensions;
+using Eventus.AppServices.Services.Bookings;
 using Eventus.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
 builder.Services.AddAppServices();
 builder.Services.AddRepositories();
+builder.Services.AddQueues();
+builder.Services.AddHostedService<BookingCreationService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseStatusCodePages();
+app.UseRouting();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "v1"));
 }
 
-app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
-app.UseRouting();
 app.MapControllers();
-app.UseSwagger();
-app.UseSwaggerUI();
 
 app.Run();

@@ -1,4 +1,5 @@
-﻿using Eventus.AppServices.Data.Dto.Events;
+﻿using Eventus.AppServices.Data.Domain.Events;
+using Eventus.AppServices.Data.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
 
 namespace Eventus.AppServices.Repositories.Events;
@@ -8,8 +9,12 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
     private readonly Lock _lock = new();
     private readonly List<Event> _events = [.. seed];
 
-    public PaginatedEventsResult GetEventsByFilter(GetEventsByFilterRequest request)
+    public Task<PaginatedEventsResult> GetEventsByFilterAsync(
+        GetEventsByFilterRequest request, CancellationToken token)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(request.Page, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(request.PageSize, 1);
+
         lock (_lock)
         {
             var filteredEvents = _events
@@ -27,40 +32,40 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
                 .Take(request.PageSize)
                 .ToArray();
 
-            return new PaginatedEventsResult(
+            return Task.FromResult(new PaginatedEventsResult(
                 totalCount,
-                pageEvents);
+                pageEvents));
         }
     }
 
-    public Event? GetEventById(Guid id)
+    public Task<Event?> GetEventByIdAsync(Guid id, CancellationToken token)
     {
         lock (_lock)
         {
-            return _events.Find(e => e.Id == id);
+            return Task.FromResult(_events.Find(e => e.Id == id));
         }
     }
 
-    public Guid CreateEvent(CreateEventRequest request)
+    public Task<Event> CreateEventAsync(CreateEventRequest request, CancellationToken token)
     {
         lock (_lock)
         {
             var @event = new Event(Guid.NewGuid(), request.Title, request.Description, request.StartAt, request.EndAt);
             _events.Add(@event);
-            return @event.Id;
+            return Task.FromResult(@event);
         }
     }
 
-    public bool UpdateEvent(UpdateEventRequest request)
+    public Task<bool> UpdateEventAsync(UpdateEventRequest request, CancellationToken token)
     {
         lock (_lock)
         {
             var index = _events.FindIndex(e => e.Id == request.Id);
             if (index < 0)
             {
-                return false;
+                return Task.FromResult(false);
             }
-            
+
             _events[index] = new Event(
                 request.Id,
                 request.Title,
@@ -68,16 +73,16 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
                 request.StartAt,
                 request.EndAt);
 
-            return true;
+            return Task.FromResult(true);
         }
     }
 
-    public bool DeleteEvent(Guid id)
+    public Task<bool> DeleteEventAsync(Guid id, CancellationToken token)
     {
         lock (_lock)
         {
             var count = _events.RemoveAll(e => e.Id == id);
-            return count != 0;
+            return Task.FromResult(count != 0);
         }
     }
 }
