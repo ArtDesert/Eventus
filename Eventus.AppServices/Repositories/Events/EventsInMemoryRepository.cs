@@ -1,13 +1,21 @@
-﻿using Eventus.AppServices.Data.Domain.Events;
+﻿using System.Collections.Concurrent;
+using Eventus.AppServices.Data.Domain.Events;
 using Eventus.AppServices.Data.Dto.Events;
 using Eventus.AppServices.Data.Requests.Events;
 
 namespace Eventus.AppServices.Repositories.Events;
 
-internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsRepository
+internal class EventsInMemoryRepository : IEventsRepository
 {
-    private readonly Lock _lock = new();
-    private readonly List<Event> _events = [.. seed];
+    private readonly ConcurrentDictionary<Guid, Event> _events = new();
+    
+    public EventsInMemoryRepository(IEnumerable<Event> seed)
+    {
+        foreach (var @event in seed)
+        {
+            _events.TryAdd(@event.Id, @event);
+        }
+    }
 
     public Task<PaginatedEventsResult> GetEventsByFilterAsync(
         GetEventsByFilterRequest request, CancellationToken token)
@@ -15,74 +23,42 @@ internal class EventsInMemoryRepository(IEnumerable<Event> seed) : IEventsReposi
         ArgumentOutOfRangeException.ThrowIfLessThan(request.Page, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(request.PageSize, 1);
 
-        lock (_lock)
-        {
-            var filteredEvents = _events
-                .Where(e => (string.IsNullOrWhiteSpace(request.Title) ||
-                             e.Title.Contains(request.Title, StringComparison.InvariantCultureIgnoreCase))
-                            && (request.From == null || e.StartAt >= request.From)
-                            && (request.To == null || e.EndAt <= request.To))
-                .ToArray();
+        var filteredEvents = _events.Values
+            .Where(e => (string.IsNullOrWhiteSpace(request.Title) ||
+                         e.Title.Contains(request.Title, StringComparison.InvariantCultureIgnoreCase))
+                        && (request.From == null || e.StartAt >= request.From)
+                        && (request.To == null || e.EndAt <= request.To))
+            .ToArray();
 
-            var totalCount = filteredEvents.Length;
-            var pageEvents = filteredEvents
-                .OrderBy(e => e.StartAt)
-                .ThenBy(e => e.Id)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToArray();
+        var totalCount = filteredEvents.Length;
+        var pageEvents = filteredEvents
+            .OrderBy(e => e.StartAt)
+            .ThenBy(e => e.Id)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToArray();
 
-            return Task.FromResult(new PaginatedEventsResult(
-                totalCount,
-                pageEvents));
-        }
+        return Task.FromResult(new PaginatedEventsResult(
+            totalCount,
+            pageEvents));
     }
 
-    public Task<Event?> GetEventByIdAsync(Guid id, CancellationToken token)
+    public Task<Event?> GetEventByIdAsync(Guid id, CancellationToken token) =>
+        Task.FromResult(_events.GetValueOrDefault(id));
+
+    public Task<Event> CreateEventAsync(Event @event, CancellationToken token)
     {
-        lock (_lock)
+        if (!_events.TryAdd(@event.Id, @event))
         {
-            return Task.FromResult(_events.Find(e => e.Id == id));
+            throw new InvalidOperationException($"Event with ID {@event.Id} already exists.");
         }
+
+        return Task.FromResult(@event);
     }
 
-    public Task<Event> CreateEventAsync(CreateEventRequest request, CancellationToken token)
-    {
-        lock (_lock)
-        {
-            var @event = new Event(Guid.NewGuid(), request.Title, request.Description, request.StartAt, request.EndAt);
-            _events.Add(@event);
-            return Task.FromResult(@event);
-        }
-    }
+    public Task<bool> TryUpdateEventAsync(Event current, Event updated, CancellationToken token) =>
+        Task.FromResult(_events.TryUpdate(updated.Id, updated, current));
 
-    public Task<bool> UpdateEventAsync(UpdateEventRequest request, CancellationToken token)
-    {
-        lock (_lock)
-        {
-            var index = _events.FindIndex(e => e.Id == request.Id);
-            if (index < 0)
-            {
-                return Task.FromResult(false);
-            }
-
-            _events[index] = new Event(
-                request.Id,
-                request.Title,
-                request.Description,
-                request.StartAt,
-                request.EndAt);
-
-            return Task.FromResult(true);
-        }
-    }
-
-    public Task<bool> DeleteEventAsync(Guid id, CancellationToken token)
-    {
-        lock (_lock)
-        {
-            var count = _events.RemoveAll(e => e.Id == id);
-            return Task.FromResult(count != 0);
-        }
-    }
+    public Task<bool> DeleteEventAsync(Guid id, CancellationToken token) =>
+        Task.FromResult(_events.TryRemove(id, out _));
 }
