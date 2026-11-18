@@ -1,4 +1,5 @@
 ﻿using Eventus.AppServices.Services.Bookings;
+using Eventus.Tests.Integration.Bookings.Fake;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
