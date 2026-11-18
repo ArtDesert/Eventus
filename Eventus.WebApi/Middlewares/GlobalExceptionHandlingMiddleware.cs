@@ -67,6 +67,9 @@ public class GlobalExceptionHandlingMiddleware(
                 Status = StatusCodes.Status400BadRequest
             },
             NotFoundException e => new ProblemDetails { Status = StatusCodes.Status404NotFound, Detail = e.Message },
+            ConcurrentBookingModificationException e => new ProblemDetails { Status = StatusCodes.Status409Conflict, Detail = e.Message },
+            ConcurrentEventModificationException e => new ProblemDetails { Status = StatusCodes.Status409Conflict, Detail = e.Message },
+            NoAvailableSeatsException e => new ProblemDetails { Status = StatusCodes.Status409Conflict, Detail = e.Message },
             _ => new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,
