@@ -13,7 +13,7 @@ public class EventBaseRequest : IValidatableObject
 
     public DateTime EndAt { get; init; }
 
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (StartAt == default)
         {
