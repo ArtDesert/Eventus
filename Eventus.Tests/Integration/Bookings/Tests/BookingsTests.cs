@@ -1,9 +1,11 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using Eventus.Api.Contracts.Dto.Bookings;
+using Eventus.Api.Contracts.Dto.Events;
 using Eventus.Api.Contracts.Enums.Bookings;
-using Eventus.Tests.Integration.Events;
+using Eventus.Api.Contracts.Requests.Events;
 using Eventus.WebApi.Controllers.WebRoutes;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Eventus.Tests.Integration.Bookings.Tests;
@@ -11,10 +13,11 @@ namespace Eventus.Tests.Integration.Bookings.Tests;
 public class BookingsTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory
+        .WithWebHostBuilder(b => b.UseEnvironment("Test"))
+        .CreateClient();
 
-    private async Task<BookingDto> WaitForBookingStatusAsync(
-        Guid bookingId, BookingStatus expected, TimeSpan timeout)
+    private async Task<BookingDto> WaitForBookingProcessingAsync(Guid bookingId, TimeSpan timeout)
     {
         var deadline = DateTime.UtcNow + timeout;
         BookingDto? actual = null;
@@ -24,14 +27,14 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
             actual = await _client.GetFromJsonAsync<BookingDto>(
                 BookingsControllerWebRoutes.GetBookingByIdUrl(bookingId));
 
-            if (actual?.Status == expected)
+            if (actual?.Status is BookingStatus.Confirmed or BookingStatus.Rejected)
                 return actual;
 
             await Task.Delay(TimeSpan.FromMilliseconds(100));
         }
 
         throw new TimeoutException(
-            $"Booking with ID: {bookingId} did not reach '{expected}' within {timeout}. Last status: '{actual?.Status}'.");
+            $"Booking {bookingId} did not process within {timeout}. Last status: '{actual?.Status}'.");
     }
 
     #region CreateBooking
@@ -54,8 +57,10 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
     public async Task CreateBooking_ExistingEvent_CreationAndAsyncConfirmationAreSuccessful()
     {
         // Arrange
-        var @event = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
-        var eventId = @event.Id;
+        var sourceEvent = await TestDataFactory.CreateAndAssertTestEventAsync(
+            _client, TestDataFactory.CreateEventRequest);
+        var eventId = sourceEvent.Id;
+        var oldAvailableSeats = sourceEvent.AvailableSeats;
 
         // Act
         var creationResponse = await _client.PostAsync(
@@ -74,26 +79,34 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
         Assert.Null(pendingBooking.ProcessedAt);
 
         // Wait for asynchronous booking confirmation. 
-        var confirmedBooking = await WaitForBookingStatusAsync(
-            bookingId, BookingStatus.Confirmed, TimeSpan.FromSeconds(30));
+        var confirmedBooking = await WaitForBookingProcessingAsync(
+            bookingId, TimeSpan.FromSeconds(30));
 
         // Check if the booking has updated.
         Assert.Equal(bookingId, confirmedBooking.Id);
         Assert.Equal(eventId, confirmedBooking.EventId);
+        Assert.Equal(BookingStatus.Confirmed, confirmedBooking.Status);
         Assert.Equal(pendingBooking.CreatedAt, confirmedBooking.CreatedAt);
         Assert.NotNull(confirmedBooking.ProcessedAt);
         Assert.True(confirmedBooking.ProcessedAt >= confirmedBooking.CreatedAt);
+
+        var response = await _client.GetAsync($"{RequestUri.Events}{eventId}");
+        var updatedEvent = await response.Content.ReadFromJsonAsync<EventDto>();
+        Assert.NotNull(updatedEvent);
+        Assert.Equal(oldAvailableSeats - 1, updatedEvent.AvailableSeats);
     }
 
     [Fact]
     public async Task CreateBooking_CreateSomeBookingsForExistentEvent_AllBookingsAreUnique()
     {
         // Arrange
-        var @event = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
+        const int totalSeats = 10;
+        var @event = await TestDataFactory.CreateAndAssertTestEventAsync(
+            _client, TestDataFactory.BuildRequestToCreateEvent(totalSeats: totalSeats));
 
         // Act
         var responses = await Task.WhenAll(
-            Enumerable.Range(0, 10).Select(_ => _client.PostAsync(
+            Enumerable.Range(0, totalSeats).Select(_ => _client.PostAsync(
                 BookingsControllerWebRoutes.CreateBookingUrl(@event.Id), content: null)));
 
         // Assert
@@ -108,6 +121,79 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
         }
 
         Assert.Distinct(bookings.Select(b => b.Id));
+        var updatedEvent = await (await _client.GetAsync($"{RequestUri.Events}{@event.Id}")).Content.ReadFromJsonAsync<EventDto>();
+        Assert.NotNull(updatedEvent);
+        Assert.Equal(0, updatedEvent.AvailableSeats);
+    }
+
+    [Fact]
+    public async Task CreateBooking_OverBooking_CorrectOverBookingProcessing()
+    {
+        // Arrange
+        const int totalSeats = 5;
+        const int overBookingCount = 15;
+        var @event = await TestDataFactory.CreateAndAssertTestEventAsync(
+            _client, TestDataFactory.BuildRequestToCreateEvent(totalSeats: totalSeats));
+
+        // Act
+        var responses = await Task.WhenAll(
+            Enumerable.Range(0, totalSeats + overBookingCount).Select(_ => _client.PostAsync(
+                BookingsControllerWebRoutes.CreateBookingUrl(@event.Id), content: null)));
+
+        // Assert
+        var responsesWith409Code =
+            responses.Where(response => response.StatusCode == HttpStatusCode.Conflict).ToArray();
+        var responsesWith202Code = responses.Where(response => response.StatusCode == HttpStatusCode.Accepted).ToArray();
+
+        Assert.Equal(overBookingCount, responsesWith409Code.Length);
+        Assert.Equal(totalSeats, responsesWith202Code.Length);
+
+        var bookingsIds = await Task.WhenAll(
+            responsesWith202Code.Select(response => response.Content.ReadFromJsonAsync<BookingDto>()));
+
+        var bookingProcessingResult = await Task.WhenAll(
+            bookingsIds.Select(b => WaitForBookingProcessingAsync(b!.Id, TimeSpan.FromSeconds(30))));
+
+        Assert.All(bookingProcessingResult, b => Assert.Equal(BookingStatus.Confirmed, b.Status));
+        var response = await _client.GetAsync($"{RequestUri.Events}{@event.Id}");
+        var updatedEvent = await response.Content.ReadFromJsonAsync<EventDto>();
+        Assert.NotNull(updatedEvent);
+        Assert.Equal(0, updatedEvent.AvailableSeats);
+    }
+
+    [Fact]
+    public async Task CreateBooking_ConcurrentWithEventUpdates_SeatsAreNotLost()
+    {
+        // Arrange
+        const int totalSeats = 20;
+        const int bookingsCount = 10;
+        const int updatesCount = 10;
+        var @event = await TestDataFactory.CreateAndAssertTestEventAsync(
+            _client, TestDataFactory.BuildRequestToCreateEvent(totalSeats: totalSeats));
+
+        // Act
+        var bookingTasks = Enumerable.Range(0, bookingsCount).Select(_ => _client.PostAsync(
+            BookingsControllerWebRoutes.CreateBookingUrl(@event.Id), content: null));
+        var updateTasks = Enumerable.Range(0, updatesCount).Select(i => _client.PutAsJsonAsync(
+            $"{RequestUri.Events}{@event.Id}",
+            new UpdateEventRequest
+            {
+                Title = $"Updated title {i}",
+                Description = "Updated description",
+                StartAt = TestDataFactory.StartDate,
+                EndAt = TestDataFactory.EndDate
+            }));
+        var responses = await Task.WhenAll(bookingTasks.Concat(updateTasks));
+
+        // Assert
+        Assert.Equal(bookingsCount, responses.Count(r => r.StatusCode == HttpStatusCode.Accepted));
+        Assert.Equal(updatesCount, responses.Count(r => r.StatusCode == HttpStatusCode.NoContent));
+
+        var actualEvent = await _client.GetFromJsonAsync<EventDto>($"{RequestUri.Events}{@event.Id}");
+        Assert.NotNull(actualEvent);
+        Assert.StartsWith("Updated title", actualEvent.Title);
+        Assert.Equal(totalSeats, actualEvent.TotalSeats);
+        Assert.Equal(totalSeats - bookingsCount, actualEvent.AvailableSeats);
     }
 
     #endregion
@@ -131,7 +217,9 @@ public class BookingsTests(WebApplicationFactory<Program> factory)
     public async Task GetBookingById_ExistingBooking_ReturnsBooking()
     {
         // Arrange
-        var @event = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
+        var @event =
+            await TestDataFactory.CreateAndAssertTestEventAsync(_client,
+                TestDataFactory.CreateEventRequest);
         var eventId = @event.Id;
         var creationResponse = await _client.PostAsync(
             BookingsControllerWebRoutes.CreateBookingUrl(eventId), content: null);
