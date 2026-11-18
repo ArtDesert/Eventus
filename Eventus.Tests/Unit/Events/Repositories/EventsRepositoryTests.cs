@@ -1,5 +1,4 @@
 ﻿using Eventus.AppServices.Data.Domain.Events;
-using Eventus.AppServices.Data.Requests.Events;
 using Eventus.AppServices.Repositories.Events;
 using FluentAssertions;
 
@@ -12,33 +11,37 @@ public class EventsRepositoryTests
 
     private async Task<Event> AddTestEvent()
     {
-        var request = new CreateEventRequest(
+        var e = new Event(
+            Guid.NewGuid(),
             "Test event",
             "Test description",
             new DateTime(2026, 1, 1),
-            new DateTime(2026, 1, 18));
-        return await _repository.CreateEventAsync(request, _token);
+            new DateTime(2026, 1, 18),
+            10);
+        return await _repository.CreateEventAsync(e, _token);
     }
 
     [Fact]
     public async Task CreateEvent_CorrectRequest_SavesEventWithAllProperties()
     {
         // Arrange
-        var request = new CreateEventRequest(
+        var e = new Event(
+            Guid.NewGuid(),
             "Test event",
             "Test description",
             new DateTime(2026, 1, 1),
-            new DateTime(2026, 1, 18));
+            new DateTime(2026, 1, 18),
+            10);
 
         // Act
-        var createdEvent = await _repository.CreateEventAsync(request, _token);
+        var createdEvent = await _repository.CreateEventAsync(e, _token);
         var @event = await _repository.GetEventByIdAsync(createdEvent.Id, _token);
 
         // Assert
         Assert.NotNull(createdEvent);
-        createdEvent.Should().BeEquivalentTo(request);
+        createdEvent.Should().BeEquivalentTo(e);
         Assert.NotNull(@event);
-        @event.Should().BeEquivalentTo(request);
+        @event.Should().BeEquivalentTo(e);
     }
 
     [Fact]
@@ -46,20 +49,21 @@ public class EventsRepositoryTests
     {
         // Arrange
         var testEvent = await AddTestEvent();
-        var updateRequest = new UpdateEventRequest(
+        var updated = new Event(
             testEvent.Id,
             "New title",
             "New description",
             new DateTime(2026, 1, 1, 10, 0, 0),
-            new DateTime(2026, 1, 18, 10, 0, 0));
+            new DateTime(2026, 1, 18, 10, 0, 0),
+            10);
 
         // Act
-        var isUpdated = await _repository.UpdateEventAsync(updateRequest, _token);
+        var isUpdated = await _repository.TryUpdateEventAsync(testEvent, updated, _token);
         var updatedEvent = await _repository.GetEventByIdAsync(testEvent.Id, _token);
 
         // Assert
         Assert.True(isUpdated);
-        updatedEvent.Should().BeEquivalentTo(updateRequest);
+        updatedEvent.Should().BeEquivalentTo(updated);
     }
 
     [Fact]
@@ -67,15 +71,16 @@ public class EventsRepositoryTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var updateRequest = new UpdateEventRequest(
+        var updated = new Event(
             id,
             "New title",
             "New description",
             new DateTime(2026, 1, 1, 10, 0, 0),
-            new DateTime(2026, 1, 18, 10, 0, 0));
+            new DateTime(2026, 1, 18, 10, 0, 0),
+            10);
 
         // Act
-        var isUpdated = await _repository.UpdateEventAsync(updateRequest, _token);
+        var isUpdated = await _repository.TryUpdateEventAsync(current: null!, updated, _token);
         var nonExistentEvent = await _repository.GetEventByIdAsync(id, _token);
 
         // Assert

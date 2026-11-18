@@ -29,25 +29,33 @@ public class EventsServiceTests
     public async Task CreateEvent_CorrectRequest_ReturnsCreatedEvent()
     {
         // Arrange
-        var id = Guid.NewGuid();
         var request = new CreateEventRequest(
             "Test",
             "Description",
             new DateTime(2000, 1, 1),
-            new DateTime(2005, 1, 1));
+            new DateTime(2005, 1, 1),
+            10);
         var expected = new Event(
-            id,
+            Guid.NewGuid(),
             request.Title,
             request.Description,
             request.StartAt,
-            request.EndAt);
-        _repositoryMock.Setup(mock => mock.CreateEventAsync(request, _token)).ReturnsAsync(expected);
+            request.EndAt,
+            10);
+        _repositoryMock.Setup(mock => mock.CreateEventAsync(It.IsAny<Event>(), _token)).ReturnsAsync(expected);
 
         // Act
         var actual = await _service.CreateEventAsync(request, _token);
 
         // Assert
-        actual.Should().BeEquivalentTo(expected);
+        Assert.NotNull(actual);
+        Assert.Equal(expected.Title, actual.Title);
+        Assert.NotEqual(Guid.Empty, actual.Id);
+        Assert.Equal(expected.Description, actual.Description);
+        Assert.Equal(expected.StartAt, actual.StartAt);
+        Assert.Equal(expected.EndAt, actual.EndAt);
+        Assert.Equal(expected.TotalSeats, actual.TotalSeats);
+        Assert.Equal(expected.AvailableSeats, actual.AvailableSeats);
     }
 
     [Fact]
@@ -68,6 +76,8 @@ public class EventsServiceTests
                     Description = "DESCRIPTION",
                     StartAt = new DateTime(2000, 1, 1, 9, 0, 0),
                     EndAt = new DateTime(2000, 1, 1, 18, 0, 0),
+                    TotalSeats = 10,
+                    AvailableSeats = 10
                 }
             ],
             Page = 5,
@@ -80,7 +90,8 @@ public class EventsServiceTests
                     "TITLE",
                     "DESCRIPTION",
                     new DateTime(2000, 1, 1, 9, 0, 0),
-                    new DateTime(2000, 1, 1, 18, 0, 0))
+                    new DateTime(2000, 1, 1, 18, 0, 0),
+                    10)
             ]));
 
         // Act
@@ -101,7 +112,8 @@ public class EventsServiceTests
             "Test",
             null,
             new DateTime(2000, 1, 1),
-            new DateTime(2005, 1, 1));
+            new DateTime(2005, 1, 1),
+            10);
         _repositoryMock.Setup(mock => mock.GetEventByIdAsync(id, _token)).ReturnsAsync(expected);
 
         // Act
@@ -122,14 +134,17 @@ public class EventsServiceTests
             null,
             new DateTime(2000, 1, 1),
             new DateTime(2005, 1, 1));
-        _repositoryMock.Setup(mock => mock.UpdateEventAsync(request, _token)).ReturnsAsync(true);
+
+        var e = new Event(request.Id, request.Title, request.Description, request.StartAt, request.EndAt, 10);
+        _repositoryMock.Setup(mock => mock.GetEventByIdAsync(request.Id, _token)).ReturnsAsync(e);
+        _repositoryMock.Setup(mock => mock.TryUpdateEventAsync(e, It.IsAny<Event>(), _token)).ReturnsAsync(true);
 
         // Act
         var exception = await Record.ExceptionAsync(() => _service.UpdateEventAsync(request, _token));
 
         // Assert
         Assert.Null(exception);
-        _repositoryMock.Verify(mock => mock.UpdateEventAsync(request, _token), Times.Once);
+        _repositoryMock.Verify(mock => mock.TryUpdateEventAsync(e, It.IsAny<Event>(), _token), Times.Once);
     }
 
     [Fact]
@@ -173,11 +188,13 @@ public class EventsServiceTests
             null,
             new DateTime(2000, 1, 1),
             new DateTime(2005, 1, 1));
-        _repositoryMock.Setup(mock => mock.UpdateEventAsync(request, _token)).ReturnsAsync(false);
+
+        var e = new Event(request.Id, request.Title, request.Description, request.StartAt, request.EndAt, 10);
+        _repositoryMock.Setup(mock => mock.TryUpdateEventAsync(e, It.IsAny<Event>(), _token)).ReturnsAsync(false);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateEventAsync(request, _token));
-        _repositoryMock.Verify(mock => mock.UpdateEventAsync(request, _token), Times.Once);
+        _repositoryMock.Verify(mock => mock.TryUpdateEventAsync(e, It.IsAny<Event>(), _token), Times.Never);
     }
 
     [Fact]

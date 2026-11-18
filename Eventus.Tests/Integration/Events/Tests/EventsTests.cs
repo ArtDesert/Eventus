@@ -31,7 +31,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     public async Task GetEventById_ExistingEvent_ReturnsEvent()
     {
         // Arrange
-        var createdEvent = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
+        var createdEvent = await TestDataFactory.CreateAndAssertTestEventAsync(_client, TestDataFactory.CreateEventRequest);
         var id = createdEvent.Id;
 
         // Act
@@ -42,7 +42,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var @event = await response.Content.ReadFromJsonAsync<EventDto>();
         Assert.NotNull(@event);
         Assert.Equal(id, @event.Id);
-        @event.Should().BeEquivalentTo(EventsData.TestEventBaseRequest);
+        @event.Should().BeEquivalentTo(TestDataFactory.CreateEventRequest);
     }
 
     #endregion
@@ -56,7 +56,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", EventsData.TestEventBaseRequest);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{randomId}", TestDataFactory.UpdateEventRequest);
 
         // Assert
         await AssertProblemDetails.IsValid404ProblemDetailsAsync(response);
@@ -66,7 +66,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     public async Task UpdateEvent_ExistingEvent_UpdateIsSuccessful()
     {
         // Arrange
-        var createdEvent = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
+        var createdEvent = await TestDataFactory.CreateAndAssertTestEventAsync(_client, TestDataFactory.CreateEventRequest);
         var id = createdEvent.Id;
         var updateRequest = new EventBaseRequest
         {
@@ -76,7 +76,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
             EndAt = new DateTime(2021, 4, 3),
         };
         // Check that the creation and update requests are different.
-        updateRequest.Should().NotBeEquivalentTo(EventsData.TestEventBaseRequest);
+        updateRequest.Should().NotBeEquivalentTo(TestDataFactory.UpdateEventRequest);
 
         // Act
         var updateResponse = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", updateRequest);
@@ -113,7 +113,7 @@ public class EventsTests(WebApplicationFactory<Program> factory)
     public async Task DeleteEvent_ExistingEvent_DeletionIsSuccessful()
     {
         // Arrange
-        var createdEvent = await EventsData.CreateAndAssertTestEventAsync(_client, EventsData.TestEventBaseRequest);
+        var createdEvent = await TestDataFactory.CreateAndAssertTestEventAsync(_client, TestDataFactory.CreateEventRequest);
         var id = createdEvent.Id;
 
         // Act
