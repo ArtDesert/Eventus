@@ -209,7 +209,7 @@ public class EventDomainTests
         Assert.Equal(sourceEvent.AvailableSeats + releaseCount, updatedEvent.AvailableSeats);
         Assert.Equal(oldAvailableSeats, sourceEvent.AvailableSeats);
     }
-    
+
     [Fact]
     public void CreateEvent_CorrectRequest_ReturnsCreatedEvent()
     {

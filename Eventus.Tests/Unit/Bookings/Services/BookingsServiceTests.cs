@@ -38,7 +38,7 @@ public class BookingsServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        
+
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateBookingAsync(eventId, _token));
     }
@@ -50,7 +50,7 @@ public class BookingsServiceTests
         const int totalSeats = 1;
         var @event = await CreateEventAsync(totalSeats);
         await _service.CreateBookingAsync(@event.Id, _token);
-        var eventWithoutSeats = await _eventsRepository.GetEventByIdAsync(@event.Id, _token); 
+        var eventWithoutSeats = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(eventWithoutSeats);
         Assert.Equal(0, eventWithoutSeats.AvailableSeats);
 
@@ -70,10 +70,10 @@ public class BookingsServiceTests
         var releasedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(releasedEvent);
         var oldAvailableSeats = releasedEvent.AvailableSeats;
-        
+
         // Act
         await _service.RejectBookingAsync(booking.Id, _token);
-        
+
         // Assert
         var updatedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(updatedEvent);
@@ -90,27 +90,27 @@ public class BookingsServiceTests
         // Arrange
         const int totalSeats = 10;
         var @event = await CreateEventAsync(totalSeats);
-        
+
         // Act
         var booking = await _service.CreateBookingAsync(@event.Id, _token);
-        
+
         // Assert
         var result = _queue.TryDequeue(out var bookingTask);
         Assert.True(result);
         Assert.NotNull(bookingTask);
         Assert.Equal(booking.Id, bookingTask.BookingId);
     }
-    
+
     [Fact]
     public async Task CreateBooking_EventWithAvailableSeats_DecreasesAvailableSeatsByOne()
     {
         // Arrange
         const int totalSeats = 10;
         var @event = await CreateEventAsync(totalSeats);
-        
+
         // Act
         await _service.CreateBookingAsync(@event.Id, _token);
-        
+
         // Assert
         var updatedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(updatedEvent);
@@ -148,15 +148,15 @@ public class BookingsServiceTests
         var reservedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(reservedEvent);
         Assert.Equal(totalSeats - 1, reservedEvent.AvailableSeats);
-        
+
         // Act
         await _service.RejectBookingAsync(pendingBooking.Id, _token);
-        
+
         // Assert
         var releasedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(releasedEvent);
         Assert.Equal(totalSeats, releasedEvent.AvailableSeats);
-        
+
         var actual = await _service.GetBookingByIdAsync(pendingBooking.Id, _token);
         Assert.Equal(Api.Contracts.Enums.Bookings.BookingStatus.Rejected, actual.Status);
         Assert.NotNull(actual.ProcessedAt);
@@ -176,7 +176,7 @@ public class BookingsServiceTests
 
         // Act
         var newBooking = await _service.CreateBookingAsync(@event.Id, _token);
-        
+
         // Assert
         Assert.NotEqual(rejectedBooking.Id, newBooking.Id);
         Assert.Equal(Api.Contracts.Enums.Bookings.BookingStatus.Pending, newBooking.Status);
@@ -200,7 +200,7 @@ public class BookingsServiceTests
 
         // Act
         var bookingResult = await _service.ConfirmBookingAsync(booking.Id, _token);
-        
+
         // Assert
         Assert.Equal(BookingResult.Rejected, bookingResult);
         var updatedBooking = await _service.GetBookingByIdAsync(booking.Id, _token);
@@ -217,7 +217,7 @@ public class BookingsServiceTests
         var pendingBooking = await _service.CreateBookingAsync(@event.Id, _token);
         await _service.RejectBookingAsync(pendingBooking.Id, _token);
         var rejectedBooking = await _service.GetBookingByIdAsync(pendingBooking.Id, _token);
-        
+
         // Act
         var bookingResult = await _service.ConfirmBookingAsync(rejectedBooking.Id, _token);
 
@@ -254,7 +254,7 @@ public class BookingsServiceTests
         Assert.Equal(totalSeats, noExceptions.Length);
         var noAvailableSeatsExceptions = exceptions.Where(ex => ex is NoAvailableSeatsException).ToArray();
         Assert.Equal(concurrentRequests - totalSeats, noAvailableSeatsExceptions.Length);
-        
+
         var updatedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(updatedEvent);
         Assert.Equal(0, updatedEvent.AvailableSeats);
@@ -277,7 +277,7 @@ public class BookingsServiceTests
 
         // Assert
         Assert.Distinct(bookings.Select(b => b.Id));
-        
+
         var updatedEvent = await _eventsRepository.GetEventByIdAsync(@event.Id, _token);
         Assert.NotNull(updatedEvent);
         Assert.Equal(0, updatedEvent.AvailableSeats);

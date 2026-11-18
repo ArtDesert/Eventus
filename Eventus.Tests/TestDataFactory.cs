@@ -27,17 +27,20 @@ public static class TestDataFactory
         DateTime? startAt = null,
         DateTime? endAt = null,
         int totalSeats = 10) => new CreateEventRequest
-    {
-        Title = title,
-        Description = description,
-        StartAt = startAt ?? StartDate,
-        EndAt = endAt ?? EndDate,
-        TotalSeats = totalSeats
-    };
+        {
+            Title = title,
+            Description = description,
+            StartAt = startAt ?? StartDate,
+            EndAt = endAt ?? EndDate,
+            TotalSeats = totalSeats
+        };
 
     public static UpdateEventRequest UpdateEventRequest { get; } = new()
     {
-        Title = "Test", Description = "Description", StartAt = StartDate, EndAt = EndDate
+        Title = "Test",
+        Description = "Description",
+        StartAt = StartDate,
+        EndAt = EndDate
     };
 
     public static Guid EventId { get; } = Guid.Parse("696ab98f-8ed7-4882-bd08-253743a18d04");

@@ -8,7 +8,7 @@ namespace Eventus.AppServices.Repositories.Events;
 internal class EventsInMemoryRepository : IEventsRepository
 {
     private readonly ConcurrentDictionary<Guid, Event> _events = new();
-    
+
     public EventsInMemoryRepository(IEnumerable<Event> seed)
     {
         foreach (var @event in seed)

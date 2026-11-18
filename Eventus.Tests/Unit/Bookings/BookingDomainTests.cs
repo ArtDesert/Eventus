@@ -97,7 +97,7 @@ public class BookingDomainTests
         Assert.False(isRejected);
         Assert.Null(actual);
     }
-    
+
     [Theory]
     [MemberData(nameof(IncorrectRequests))]
     public void CreateBooking_IncorrectRequests_ThrowsDomainValidationException(

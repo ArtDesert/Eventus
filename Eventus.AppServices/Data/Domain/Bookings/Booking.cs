@@ -55,7 +55,7 @@ public class Booking
         throw new BookingProcessingException(
             $"You cannot complete the booking if the status is not pending. Current status is: \'{Status}\'");
     }
-    
+
     public Booking Reject()
     {
         if (Status == BookingStatus.Pending)
