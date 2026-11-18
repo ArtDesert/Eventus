@@ -11,9 +11,9 @@ public interface IEventsController
 
     Task<ActionResult<EventDto>> GetEventById(Guid id, CancellationToken token = default);
 
-    Task<IActionResult> CreateEvent(EventBaseRequest request, CancellationToken token = default);
+    Task<IActionResult> CreateEvent(CreateEventRequest request, CancellationToken token = default);
 
-    Task<IActionResult> UpdateEvent(Guid id, EventBaseRequest request, CancellationToken token = default);
+    Task<IActionResult> UpdateEvent(Guid id, UpdateEventRequest request, CancellationToken token = default);
 
     Task<IActionResult> DeleteEvent(Guid id, CancellationToken token = default);
 }

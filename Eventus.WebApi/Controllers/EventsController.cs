@@ -31,17 +31,17 @@ public class EventsController(IEventsService eventsService)
 
     [HttpPost]
     public async Task<IActionResult> CreateEvent(
-        [FromBody] EventBaseRequest request, CancellationToken token)
+        [FromBody] CreateEventRequest request, CancellationToken token)
     {
         var appServicesRequest = new AppServices.Data.Requests.Events.CreateEventRequest(
-            request.Title, request.Description, request.StartAt, request.EndAt);
+            request.Title, request.Description, request.StartAt, request.EndAt, request.TotalSeats);
         var eventDto = await eventsService.CreateEventAsync(appServicesRequest, token);
         return CreatedAtAction(nameof(GetEventById), new { eventDto.Id }, eventDto);
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateEvent(
-        [FromRoute] Guid id, [FromBody] EventBaseRequest request, CancellationToken token)
+        [FromRoute] Guid id, [FromBody] UpdateEventRequest request, CancellationToken token)
     {
         var appServicesRequest = new AppServices.Data.Requests.Events.UpdateEventRequest(
             id, request.Title, request.Description, request.StartAt, request.EndAt);

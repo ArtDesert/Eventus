@@ -1,6 +1,6 @@
 ﻿using System.Net.Http.Json;
-using Eventus.Api.Contracts.Requests.Events;
 using Eventus.AppServices.Services.Events;
+using Eventus.Tests.Integration.Events.Fake;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +20,7 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
     {
         // Arrange
         // Act
-        var response = await _client.PostAsJsonAsync(RequestUri.Events, EventsData.TestEventBaseRequest);
+        var response = await _client.PostAsJsonAsync(RequestUri.Events, TestDataFactory.CreateEventRequest);
 
         // Assert
         await AssertProblemDetails.IsValid500ProblemDetailsAsync(response);
@@ -58,7 +58,7 @@ public class InternalServerErrorProblemDetailsTests(WebApplicationFactory<Progra
         var id = Guid.NewGuid();
 
         // Act
-        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", EventsData.TestEventBaseRequest);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{id}", TestDataFactory.UpdateEventRequest);
 
 
         // Assert

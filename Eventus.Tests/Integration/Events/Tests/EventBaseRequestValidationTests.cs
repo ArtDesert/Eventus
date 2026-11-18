@@ -10,41 +10,27 @@ public class EventBaseRequestValidationTests(WebApplicationFactory<Program> fact
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client = factory.CreateClient();
-    private static readonly DateTime StartDate = DateTime.UtcNow.AddHours(24);
-    private static readonly Guid EventId = Guid.Parse("75617c6b-1b3a-46ee-ad50-5135e8c894b7");
-
-    private static EventBaseRequest BuildRequest(
-        string title = "Test event",
-        string? description = null,
-        DateTime? startAt = null,
-        DateTime? endAt = null) => new()
-        {
-            Title = title,
-            Description = description,
-            StartAt = startAt ?? StartDate,
-            EndAt = endAt ?? StartDate.AddHours(5),
-        };
 
     public static TheoryData<string, EventBaseRequest, string> IncorrectRequests => new()
     {
         {
             "EmptyTitle",
-            BuildRequest(title: ""),
+            TestDataFactory.BuildRequestToCreateEvent(title: ""),
             nameof(EventBaseRequest.Title)
         },
         {
             "TitleIsWhiteSpaceOnly",
-            BuildRequest(title: "       "),
+            TestDataFactory.BuildRequestToCreateEvent(title: "       "),
             nameof(EventBaseRequest.Title)
         },
         {
             "IncorrectDateOrder_ProblemFieldIsStartAt",
-            BuildRequest(endAt: StartDate.AddHours(-1)),
+            TestDataFactory.BuildRequestToCreateEvent(endAt: TestDataFactory.StartDate.AddHours(-1)),
             nameof(EventBaseRequest.StartAt)
         },
         {
             "IncorrectDateOrder_ProblemFieldIsEndAt",
-            BuildRequest(endAt: StartDate.AddHours(-1)),
+            TestDataFactory.BuildRequestToCreateEvent(endAt: TestDataFactory.StartDate.AddHours(-1)),
             nameof(EventBaseRequest.EndAt)
         },
     };
@@ -83,11 +69,11 @@ public class EventBaseRequestValidationTests(WebApplicationFactory<Program> fact
         },
     };
 
-    public static TheoryData<string, EventBaseRequest> CorrectRequests => new()
+    public static TheoryData<string, CreateEventRequest> CorrectRequests => new()
     {
-        { "FullRequestWithoutDescription", BuildRequest() },
-        { "FullRequestWithDescription", BuildRequest(description: "Test description") },
-        { "DatesAreEqual", BuildRequest(startAt:StartDate, endAt: StartDate) },
+        { "FullRequestWithoutDescription", TestDataFactory.BuildRequestToCreateEvent() },
+        { "FullRequestWithDescription", TestDataFactory.BuildRequestToCreateEvent(description: "Test description") },
+        { "DatesAreEqual", TestDataFactory.BuildRequestToCreateEvent(startAt: TestDataFactory.StartDate, endAt: TestDataFactory.StartDate) },
     };
 
     #region CreateEvent
@@ -123,7 +109,7 @@ public class EventBaseRequestValidationTests(WebApplicationFactory<Program> fact
     [Theory]
     [MemberData(nameof(CorrectRequests))]
     public async Task CreateEvent_ValidationPassed_Returns201(
-        string _, EventBaseRequest request)
+        string _, CreateEventRequest request)
     {
         // Arrange
         // Act
@@ -144,7 +130,7 @@ public class EventBaseRequestValidationTests(WebApplicationFactory<Program> fact
     {
         // Arrange
         // Act
-        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{EventId}", request);
+        var response = await _client.PutAsJsonAsync($"{RequestUri.Events}{TestDataFactory.EventId}", request);
 
         // Assert
         await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);
@@ -159,7 +145,7 @@ public class EventBaseRequestValidationTests(WebApplicationFactory<Program> fact
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PutAsync($"{RequestUri.Events}{EventId}", content);
+        var response = await _client.PutAsync($"{RequestUri.Events}{TestDataFactory.EventId}", content);
 
         // Assert
         await AssertProblemDetails.IsValid400ProblemDetailsAsync(response, field);

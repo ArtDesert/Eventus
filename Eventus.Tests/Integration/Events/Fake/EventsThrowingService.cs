@@ -2,7 +2,7 @@
 using Eventus.AppServices.Data.Requests.Events;
 using Eventus.AppServices.Services.Events;
 
-namespace Eventus.Tests.Integration.Events;
+namespace Eventus.Tests.Integration.Events.Fake;
 
 public class EventsThrowingService : IEventsService
 {

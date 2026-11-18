@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Eventus.AppServices.Data.Domain.Bookings;
 
 namespace Eventus.AppServices.Queues.Bookings;
@@ -12,7 +13,7 @@ public class BookingTaskInMemoryQueue : IBookingTaskQueue
         _queue.Enqueue(task);
     }
 
-    public bool TryDequeue(out BookingTask? task)
+    public bool TryDequeue([NotNullWhen(true)] out BookingTask? task)
     {
         return _queue.TryDequeue(out task);
     }

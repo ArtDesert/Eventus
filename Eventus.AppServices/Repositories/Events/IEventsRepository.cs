@@ -11,9 +11,9 @@ public interface IEventsRepository
 
     Task<Event?> GetEventByIdAsync(Guid id, CancellationToken token);
 
-    Task<Event> CreateEventAsync(CreateEventRequest request, CancellationToken token);
+    Task<Event> CreateEventAsync(Event @event, CancellationToken token);
 
-    Task<bool> UpdateEventAsync(UpdateEventRequest request, CancellationToken token);
+    Task<bool> TryUpdateEventAsync(Event current, Event updated, CancellationToken token);
 
     Task<bool> DeleteEventAsync(Guid id, CancellationToken token);
 }

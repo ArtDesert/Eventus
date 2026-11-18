@@ -1,15 +1,18 @@
 using System.Text.Json.Serialization;
 using Eventus.AppServices.Extensions;
+using Eventus.AppServices.Options;
 using Eventus.AppServices.Services.Bookings;
 using Eventus.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.Configure<BookingProcessingOptions>(
+    builder.Configuration.GetSection(nameof(BookingProcessingOptions)));
 builder.Services.AddAppServices();
 builder.Services.AddRepositories();
 builder.Services.AddQueues();
-builder.Services.AddHostedService<BookingCreationService>();
+builder.Services.AddHostedService<BookingConfirmationService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

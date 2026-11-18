@@ -1,7 +1,8 @@
 ﻿using Eventus.Api.Contracts.Dto.Bookings;
+using Eventus.AppServices.Data.Enums.Bookings;
 using Eventus.AppServices.Services.Bookings;
 
-namespace Eventus.Tests.Integration.Bookings;
+namespace Eventus.Tests.Integration.Bookings.Fake;
 
 public class BookingsThrowingService : IBookingsService
 {
@@ -15,7 +16,12 @@ public class BookingsThrowingService : IBookingsService
         throw new InvalidOperationException();
     }
 
-    public Task ConfirmBookingAsync(Guid bookingId, CancellationToken token)
+    public Task<BookingResult> ConfirmBookingAsync(Guid bookingId, CancellationToken token)
+    {
+        throw new InvalidOperationException();
+    }
+
+    public Task<bool> RejectBookingAsync(Guid bookingId, CancellationToken token)
     {
         throw new InvalidOperationException();
     }
